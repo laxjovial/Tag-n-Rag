@@ -6,14 +6,15 @@ This project is a sophisticated, standalone Retrieval-Augmented Generation (RAG)
 
 ## Key Features
 
-*   **Document Management:**
+*   **Flexible Document Creation:**
+    *   **File Upload:** Upload multiple documents at once (PDF, DOCX, TXT).
+    *   **Create from Text:** Paste or type raw text and save it as a new document.
+    *   **Save Query Results:** Save the results of your queries as new, searchable documents.
+*   **Advanced Document Management:**
     *   **Cloud Storage:** All documents are securely stored in Google Cloud Storage.
-    *   **Multi-File Ingestion & Categorization:** Upload multiple documents at once and assign them to custom categories.
-    *   **Editable Documents:** Users can edit the content of their documents directly within the application.
-    *   **Expiration & Notifications:** Set custom expiration dates or use a system-wide default, with notifications for pending deletions.
-*   **Knowledge Creation & Export:**
-    *   **Save & Export Queries:** Save query results as new, searchable documents within the system.
-    *   **Export Formats:** Export query results to PDF, DOCX, or TXT.
+    *   **Categorization:** Organize all documents into custom categories.
+    *   **Editing & Exporting:** Edit any document's content and export it to PDF, DOCX, or TXT at any time.
+    *   **Expiration Policies:** Set custom or default expiration dates for documents, with automatic notifications.
 *   **Intelligent Querying:**
     *   **Flexible Querying:** Query individual documents, multiple documents, or entire categories at once.
     *   **Query History:** Access a complete history of all past queries.

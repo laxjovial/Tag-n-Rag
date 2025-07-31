@@ -63,6 +63,11 @@ class DocumentOut(BaseModel):
 class DocumentUpdate(BaseModel):
     content: str
 
+class DocumentCreateFromText(BaseModel):
+    filename: str
+    content: str
+    category_ids: Optional[list[int]] = None
+
 # --- Query Schemas ---
 class QueryInput(BaseModel):
     question: str
