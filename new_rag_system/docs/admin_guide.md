@@ -64,3 +64,18 @@ The global query history page provides a comprehensive log of all queries made b
     *   Keywords in the query text
 
 This allows you to quickly find specific information about system usage.
+
+---
+
+## 6. Category Management
+
+As an admin, you can view and delete any categories created by users. This is useful for maintaining a clean and organized set of categories.
+
+*   **View Categories:** A list of all categories is available in the "Categories" section of the admin dashboard.
+*   **Delete a Category:** You can delete a category by clicking the "Delete" button next to it. This will not delete the documents within the category, only the category itself.
+
+## 7. System Settings
+
+You can configure system-wide settings from the "Settings" tab.
+
+*   **Default Document Expiration:** Set a default number of days after which newly uploaded documents will expire. Leave it blank to disable default expiration. This setting can be overridden by users during upload.

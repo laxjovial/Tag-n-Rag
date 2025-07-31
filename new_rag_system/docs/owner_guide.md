@@ -121,5 +121,16 @@ The modular architecture makes it straightforward to extend the system.
 ## 5. Deployment Considerations
 
 *   **Containerization:** The entire application (backend, frontend, databases) is designed to be easily containerized using Docker and managed with Docker Compose for development and production.
-*   **Cloud Storage:** For a production environment, local file storage for uploaded documents should be replaced with a cloud storage solution like Amazon S3 or Google Cloud Storage. The system includes placeholder functions for this integration.
+*   **Cloud Storage (Google Cloud Storage):** The system is now fully integrated with GCS for persistent and scalable document storage. The `CloudStorageService` in `app/services/storage.py` handles all interactions with the GCS API.
+    *   **Configuration:** To enable GCS, you must set the `CLOUD_STORAGE_BUCKET` environment variable in your `.env` file. You must also ensure that the application's environment has the necessary GCS credentials (e.g., by setting the `GOOGLE_APPLICATION_CREDENTIALS` environment variable to point to your service account key file).
 *   **Scalability:** The backend can be scaled horizontally by running multiple instances of the FastAPI server behind a load balancer.
+
+## 6. New Features Details
+
+### 6.1. Default Expiration and Notifications
+*   **Default Expiration:** The system supports a system-wide default expiration period for documents. This is stored in the `settings` table in the database with the key `default_expiration_days`. Admins can set this value.
+*   **Notification Service:** The background service in `app/services/expiration.py` now also checks for documents that are nearing their expiration date. When a document is found, a `Notification` object is created in the database for the document's owner.
+
+### 6.2. Document Categorization
+*   **Database:** A many-to-many relationship has been established between `documents` and `categories` tables, linked by the `document_category` association table.
+*   **API:** The `/api/categories.py` file provides CRUD endpoints for managing categories. The `/api/documents.py` upload endpoint now accepts a list of `category_ids` to associate documents with categories. The `/api/query.py` endpoint can now accept a `category_id` to query all documents within that category.

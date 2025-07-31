@@ -7,13 +7,14 @@ This project is a sophisticated, standalone Retrieval-Augmented Generation (RAG)
 ## Key Features
 
 *   **Document Management:**
-    *   **Ingestion:** Upload documents in various formats (PDF, DOCX, TXT).
+    *   **Cloud Storage:** All documents are securely stored in Google Cloud Storage.
+    *   **Multi-File Ingestion:** Upload multiple documents at once.
+    *   **Categorization:** Organize documents into custom categories (e.g., "Legal", "Medical").
     *   **Versioning:** Automatically retains previous versions of updated documents.
-    *   **Expiration:** Set an expiration date for documents to be automatically deleted.
+    *   **Expiration & Notifications:** Set a custom expiration date for documents or use a system-wide default. Receive notifications before documents are automatically deleted.
     *   **Search & Peek:** Full-text search for documents by name and content peeking.
-    *   **Deletion:** Securely delete documents via the user interface.
 *   **Intelligent Querying:**
-    *   **Multi-Document Query:** Select and query multiple documents simultaneously.
+    *   **Flexible Querying:** Query individual documents, multiple documents, or entire categories at once.
     *   **Query History:** Access a complete history of all past queries.
     *   **Configurable Generation:** Choose between different Large Language Models (LLMs) or external APIs for answer generation.
 *   **User and Admin Controls:**

@@ -75,4 +75,15 @@ You can manage your account settings from your user profile page. Here you can p
 
 ---
 
+## 8. Managing Categories
+
+You can organize your documents by creating categories.
+
+*   **Create a Category:** Go to the "Categories" page to create new categories (e.g., "Medical Research", "Legal Contracts").
+*   **Assign to Documents:** When you upload a document, you can now select one or more categories to assign it to.
+
+## 9. Notifications
+
+The system will automatically notify you when your documents are about to expire. You can view your notifications by clicking on the "Notifications" icon in the top bar.
+
 If you have any questions, don't hesitate to reach out to your system administrator. Happy querying!
