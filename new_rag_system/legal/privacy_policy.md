@@ -9,8 +9,8 @@ Welcome to the Advanced RAG System ("we", "our", "us"). We are committed to prot
 We may collect information about you in a variety of ways. The information we may collect includes:
 
 *   **Personal Data:** Personally identifiable information, such as your username and email address, that you voluntarily give to us when you register with the application.
-*   **Document Data:** The content of the documents you upload to the service. We process this data to provide the core functionality of the RAG system but do not use it for any other purpose.
-*   **Usage Data:** Information automatically collected when you use the application, such as your IP address, browser type, and the pages you visit.
+*   **User-Generated Content:** This includes the documents you upload, the queries you make, and any documents you create from query results. We process this data to provide the core functionality of the RAG system.
+*   **Usage Data:** Information automatically collected when you use the application, such as your IP address, browser type, and query history.
 
 ## 3. Use of Your Information
 Having accurate information permits us to provide you with a smooth, efficient, and customized experience. Specifically, we may use information collected about you to:

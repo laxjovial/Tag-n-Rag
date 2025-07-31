@@ -18,3 +18,4 @@ openai
 pytest
 python-multipart
 google-cloud-storage
+reportlab

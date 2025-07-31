@@ -51,6 +51,7 @@ class TokenData(BaseModel):
 class DocumentOut(BaseModel):
     id: int
     filename: str
+    original_filename: str
     version: int
     owner_id: int
     created_at: datetime.datetime
@@ -58,6 +59,9 @@ class DocumentOut(BaseModel):
 
     class Config:
         orm_mode = True
+
+class DocumentUpdate(BaseModel):
+    content: str
 
 # --- Query Schemas ---
 class QueryInput(BaseModel):

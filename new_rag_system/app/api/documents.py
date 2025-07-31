@@ -2,9 +2,11 @@ from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 import uuid
+import io
 from datetime import timedelta
 from .. import schemas
 from ..database import get_db
@@ -113,6 +115,21 @@ def get_document_details(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
     return document
 
+@router.get("/{document_id}/content")
+def get_document_content(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    document = db.query(Document).filter(
+        Document.id == document_id, Document.owner_id == current_user.id
+    ).first()
+    if not document:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
+
+    content_bytes = storage_service.download(document.filename)
+    return StreamingResponse(io.BytesIO(content_bytes), media_type="text/plain")
+
 
 @router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_document(
@@ -134,3 +151,35 @@ def delete_document(
     db.commit()
 
     return None
+
+@router.put("/{document_id}", response_model=schemas.DocumentOut)
+def update_document_content(
+    document_id: int,
+    update_data: schemas.DocumentUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    document = db.query(Document).filter(
+        Document.id == document_id, Document.owner_id == current_user.id
+    ).first()
+    if not document:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
+
+    # 1. Update the content in GCS
+    # Create a file-like object from the new content
+    new_content_buffer = io.BytesIO(update_data.content.encode('utf-8'))
+    mock_upload_file = UploadFile(filename=document.original_filename, file=new_content_buffer)
+    storage_service.upload(file=mock_upload_file, destination_filename=document.filename)
+
+    # 2. Trigger re-embedding in the RAG system
+    # First, delete the old vectors
+    rag_system.delete_document(document_id=document.id)
+    # Then, process the new content
+    rag_system.process_document(document_id=document.id, document_text=update_data.content)
+
+    # 3. Update the timestamp in the database
+    document.created_at = datetime.utcnow() # To reflect the update time
+    db.commit()
+    db.refresh(document)
+
+    return document

@@ -17,7 +17,25 @@ with st.sidebar:
     st.selectbox("Model", ["OpenAI GPT-4", "Anthropic Claude 2"])
     st.slider("Temperature", 0.0, 1.0, 0.7)
 
-st.text_area("Ask a question...")
+question = st.text_area("Ask a question...")
 if st.button("Get Answer"):
     with st.spinner("Thinking..."):
-        st.info("This is a placeholder answer based on your question.")
+        # This is a placeholder for the actual API call
+        st.session_state.last_answer = "This is a placeholder answer based on your question."
+        st.session_state.last_question = question
+
+if "last_answer" in st.session_state:
+    st.markdown("---")
+    st.subheader("Answer")
+    st.write(st.session_state.last_answer)
+
+    with st.expander("Actions"):
+        st.button("Save as New Document")
+
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.button("Export as PDF")
+        with col2:
+            st.button("Export as DOCX")
+        with col3:
+            st.button("Export as TXT")

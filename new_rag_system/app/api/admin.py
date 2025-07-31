@@ -2,6 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from sqlalchemy import func
 from .. import schemas
 from ..database import get_db
 from ..models import User, LLMConfig, QueryLog
@@ -43,6 +44,18 @@ def create_llm_config(config: schemas.LLMConfig, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_config)
     return db_config
+
+@router.get("/analytics/queries_per_day", dependencies=[Depends(get_current_admin_user)])
+def get_queries_per_day(db: Session = Depends(get_db)):
+    """
+    Get the number of queries per day. (Admin only)
+    """
+    result = db.query(
+        func.date(QueryLog.created_at).label("date"),
+        func.count(QueryLog.id).label("query_count")
+    ).group_by(func.date(QueryLog.created_at)).order_by(func.date(QueryLog.created_at)).all()
+
+    return [{"date": row.date, "queries": row.query_count} for row in result]
 
 @router.get("/configs", response_model=List[schemas.LLMConfig], dependencies=[Depends(get_current_admin_user)])
 def get_all_llm_configs(db: Session = Depends(get_db)):

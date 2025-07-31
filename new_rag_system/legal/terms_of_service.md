@@ -12,7 +12,7 @@ The Service provides a platform for you to upload, manage, and query your docume
 You are responsible for safeguarding your account information. You agree not to disclose your password to any third party. You must notify us immediately upon becoming aware of any breach of security or unauthorized use of your account.
 
 ## 4. User Content
-You retain all rights to the documents and content you upload to the Service ("User Content"). You grant us a limited license to use, process, and display your User Content solely for the purpose of providing and improving the Service.
+You retain all rights to the documents, queries, and any content you create or upload to the Service ("User Content"). This includes documents generated from query results. You grant us a limited license to use, process, store, and display your User Content solely for the purpose of providing and improving the Service for you. You are solely responsible for your User Content and for backing it up.
 
 ## 5. Prohibited Activities
 You agree not to use the Service for any unlawful purpose or to engage in any activity that would damage, disable, or impair the Service.
