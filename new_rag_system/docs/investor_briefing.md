@@ -25,7 +25,10 @@ The Advanced RAG (Retrieval-Augmented Generation) System is a turnkey solution t
 ### Key Differentiators:
 
 *   **Precision Answers, Not Just Links:** Unlike traditional search, our system provides direct, synthesized answers to user questions, complete with citations from the source documents.
-*   **Enterprise-Grade & Secure:** The system is built with business needs in mind, featuring robust user management, document versioning, and data expiration policies.
+*   **Enterprise-Grade & Secure:** The system is built for the enterprise, featuring robust user management, Google Cloud Storage integration for secure and scalable file storage, and advanced data governance.
+*   **Advanced Data Governance:**
+    *   **Categorization:** Users can tag documents with custom categories, enabling powerful, context-aware queries across entire departments or projects.
+    *   **Expiration Policies:** Administrators can set system-wide default expiration dates for documents, ensuring compliance and automatically managing data lifecycle.
 *   **Highly Configurable:** Our platform is model-agnostic. Clients can choose to use major commercial LLMs (like OpenAI's GPT series), open-source models, or even integrate their own proprietary APIs, preventing vendor lock-in and ensuring data privacy.
 *   **Intuitive and User-Friendly:** A clean, simple interface allows any user, regardless of technical skill, to easily upload documents and start asking questions.
 

@@ -14,10 +14,12 @@ This project showcases a wide range of skills in modern software engineering, AI
 
 ### 1. Backend Development (Python, FastAPI)
 
+*   **Cloud Service Integration:** Integrated the application with Google Cloud Storage (GCS) for persistent, scalable, and secure document storage.
+*   **Complex Feature Implementation:** Designed and implemented advanced features such as document categorization, default expiration policies, and a user notification system.
+*   **Advanced Database Design:** Designed and implemented a many-to-many relationship in SQLAlchemy to support document categorization, demonstrating a deeper understanding of database architecture.
 *   **API Design:** Designed and built a comprehensive RESTful API to handle user authentication, document management, querying, and admin functions.
 *   **Authentication & Security:** Implemented a secure user authentication and authorization system from scratch using JSON Web Tokens (JWT). This includes password hashing (`passlib`) and token expiration.
-*   **Database Integration:** Managed interactions with a PostgreSQL database using the SQLAlchemy ORM, including schema design and data manipulation.
-*   **Asynchronous Processing:** Developed a background task manager within FastAPI to handle long-running processes like the automatic deletion of expired documents.
+*   **Asynchronous Processing:** Developed a background task manager within FastAPI to handle long-running processes like document expiration and user notifications.
 
 ### 2. AI and Machine Learning (Langchain, ChromaDB)
 
