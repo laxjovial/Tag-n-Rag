@@ -132,5 +132,6 @@ The modular architecture makes it straightforward to extend the system.
 *   **Notification Service:** The background service in `app/services/expiration.py` now also checks for documents that are nearing their expiration date. When a document is found, a `Notification` object is created in the database for the document's owner.
 
 ### 6.2. Document Categorization
-*   **Database:** A many-to-many relationship has been established between `documents` and `categories` tables, linked by the `document_category` association table.
-*   **API:** The `/api/categories.py` file provides CRUD endpoints for managing categories. The `/api/documents.py` upload endpoint now accepts a list of `category_ids` to associate documents with categories. The `/api/query.py` endpoint can now accept a `category_id` to query all documents within that category.
+*   **Database:** A many-to-many relationship has been established between `documents` and `categories` tables, linked by the `document_category` association table. The `User` model now includes a `theme` preference.
+*   **API:** The API has been expanded with endpoints for managing user profiles (`/user`), handling document edits, exporting queries, and saving queries as new documents.
+*   **LLM Flexibility:** The `RAGSystem` has been refactored to dynamically load LLM configurations, allowing for seamless integration with any Langchain-compatible model, including local models served via an API like Ollama. Refer to `llm_integration_guide.md` for detailed instructions.

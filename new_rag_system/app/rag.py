@@ -2,36 +2,22 @@ import os
 import chromadb
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.prompts import PromptTemplate
-from langchain_community.chat_models import ChatOpenAI
+from langchain_community.chat_models import ChatOpenAI, ChatAnthropic
+from langchain_community.llms import Ollama
+from langchain.schema.runnable import Runnable
+from langchain.schema import StrPair
 from langchain_community.embeddings import SentenceTransformerEmbeddings
-from langchain.chains import LLMChain
 
 class RAGSystem:
-    def __init__(self, config=None):
-        """
-        Initializes the RAG system.
-
-        Args:
-            config (dict): A dictionary with configuration options.
-                           For now, this is a placeholder.
-        """
-        self.config = config or {}
-
-        # 1. Initialize the embedding model
+    def __init__(self):
+        """Initializes the RAG system with a fixed embedding model and vector store."""
         self.embedding_model = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
-
-        # 2. Initialize the vector store (ChromaDB)
-        # Using a local, in-memory instance for now.
-        # For persistence, you can run a ChromaDB server and use:
-        # self.client = chromadb.HttpClient(host='localhost', port=8000)
         self.client = chromadb.Client()
         self.collection = self.client.get_or_create_collection(name="rag_documents")
 
-        # 3. Initialize Langchain components (placeholders for now)
-        # In a real scenario, the model would be loaded based on the user's selection
-        self.llm = ChatOpenAI(temperature=0.7, model_name="gpt-3.5-turbo") # Placeholder
-
-        self.prompt_template = PromptTemplate(
+    def _get_llm_chain(self, llm_config: dict) -> Runnable[StrPair, str]:
+        """Dynamically creates an LLM chain based on the provided config."""
+        prompt_template = PromptTemplate(
             input_variables=["context", "question"],
             template="""
             You are an assistant for question-answering tasks.
@@ -75,38 +61,29 @@ class RAGSystem:
             metadatas=metadatas
         )
 
-    def query(self, question: str, document_ids: list[int]):
+    def query(self, question: str, document_ids: list[int], llm_config: dict) -> str:
         """
-        Performs a RAG query on a set of documents.
-
-        Args:
-            question (str): The user's question.
-            document_ids (list[int]): A list of document IDs to search within.
-
-        Returns:
-            str: The generated answer.
+        Performs a RAG query using a dynamically configured LLM chain.
         """
         # 1. Retrieve relevant document chunks
-        # ChromaDB filters on metadata. We'll filter by the document_ids.
         where_filter = {"document_id": {"$in": [str(doc_id) for doc_id in document_ids]}}
-
         results = self.collection.query(
             query_texts=[question],
-            n_results=5, # Get the top 5 most relevant chunks
+            n_results=5,
             where=where_filter
         )
-
         retrieved_docs = results['documents'][0]
-
         if not retrieved_docs:
             return "I could not find any relevant information in the selected documents."
-
         context = "\n\n---\n\n".join(retrieved_docs)
 
-        # 2. Generate an answer using the LLM
-        answer = self.llm_chain.run({"context": context, "question": question})
-
-        return answer
+        # 2. Dynamically create and run the LLM chain
+        try:
+            llm_chain = self._get_llm_chain(llm_config)
+            answer = llm_chain.invoke({"context": context, "question": question})
+            return answer
+        except Exception as e:
+            return f"Error during LLM query: {e}"
 
     def delete_document(self, document_id: int):
         """

@@ -75,15 +75,20 @@ You can manage your account settings from your user profile page. Here you can p
 
 ---
 
-## 8. Managing Categories
+## 8. The Dashboard: Your Central Hub
 
-You can organize your documents by creating categories.
+The "Dashboard" page is your central hub for managing all your content and settings.
 
-*   **Create a Category:** Go to the "Categories" page to create new categories (e.g., "Medical Research", "Legal Contracts").
-*   **Assign to Documents:** When you upload a document, you can now select one or more categories to assign it to.
+*   **My Documents:** View, search, and manage all your documents. From here, you can select a document to edit its content.
+*   **My Categories:** Create new categories, rename them, or delete them.
+*   **My Notifications:** View all system notifications, such as warnings about expiring documents.
+*   **Settings:** Customize your experience, including changing the application theme (light/dark).
 
-## 9. Notifications
+## 9. Exporting and Saving Your Work
 
-The system will automatically notify you when your documents are about to expire. You can view your notifications by clicking on the "Notifications" icon in the top bar.
+After running a query, you can now save and export your results.
+
+*   **Export:** On the "Export" page, you can find a history of all your past queries. You can download any of these as a PDF, DOCX, or TXT file.
+*   **Save as Document:** You can also save a query result as a brand new, searchable document within the system, assigning it to categories just like any other document. This is a powerful way to build a knowledge base from your findings.
 
 If you have any questions, don't hesitate to reach out to your system administrator. Happy querying!

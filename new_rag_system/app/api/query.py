@@ -1,15 +1,22 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Form
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
+from typing import List, Optional
+import uuid
+import io
 
 from .. import schemas
 from ..database import get_db
-from ..models import QueryLog, User, Document, Category
+from ..models import QueryLog, User, Document, Category, LLMConfig
 from ..services.export import ExportService
+from ..services.storage import CloudStorageService
+from ..rag import RAGSystem
 from .auth import get_current_active_user
-from .documents import rag_system # Import the shared RAG system instance
 
 router = APIRouter()
+rag_system = RAGSystem()
+export_service = ExportService()
+storage_service = CloudStorageService()
 
 @router.post("/", response_model=schemas.QueryOutput)
 def query_documents(
@@ -17,36 +24,38 @@ def query_documents(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
-    """
-    Performs a RAG query on a set of documents or a category.
-    """
     doc_ids_to_query = []
-
     if query_input.category_id:
-        # If a category is specified, get all document IDs in that category
         category = db.query(Category).filter(Category.id == query_input.category_id).first()
         if not category:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
         doc_ids_to_query = [doc.id for doc in category.documents]
     elif query_input.document_ids:
-        # Otherwise, use the provided list of document IDs
         doc_ids_to_query = query_input.document_ids
     else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Either category_id or document_ids must be provided."
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Either category_id or document_ids must be provided.")
 
     if not doc_ids_to_query:
-        return schemas.QueryOutput(answer="No documents found in the specified category to query.")
+        return schemas.QueryOutput(answer="No documents found to query.", query_id=0)
 
-    # 1. Perform the query using the RAG system
+    llm_config_db = db.query(LLMConfig).filter(LLMConfig.id == query_input.llm_config_id).first() if query_input.llm_config_id else db.query(LLMConfig).filter(LLMConfig.is_default == True).first()
+    if not llm_config_db:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No LLM configuration found. Please select one or set a default.")
+
+    llm_config = {
+        "name": llm_config_db.name,
+        "model_name": llm_config_db.model_name,
+        "api_endpoint": llm_config_db.api_endpoint,
+        "api_key_env": llm_config_db.api_key_env,
+        "is_api": llm_config_db.is_api,
+    }
+
     answer = rag_system.query(
         question=query_input.question,
-        document_ids=doc_ids_to_query
+        document_ids=doc_ids_to_query,
+        llm_config=llm_config
     )
 
-    # 2. Log the query and its answer to the database
     db_query_log = QueryLog(
         user_id=current_user.id,
         query_text=query_input.question,
@@ -55,8 +64,9 @@ def query_documents(
     )
     db.add(db_query_log)
     db.commit()
+    db.refresh(db_query_log)
 
-    return schemas.QueryOutput(answer=answer)
+    return schemas.QueryOutput(answer=answer, query_id=db_query_log.id)
 
 @router.post("/{query_id}/save_as_document", response_model=schemas.DocumentOut)
 def save_query_as_document(
@@ -66,23 +76,14 @@ def save_query_as_document(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
-    query_log = db.query(QueryLog).filter(
-        QueryLog.id == query_id, QueryLog.user_id == current_user.id
-    ).first()
-
+    query_log = db.query(QueryLog).filter(QueryLog.id == query_id, QueryLog.user_id == current_user.id).first()
     if not query_log:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Query not found")
 
     content = f"Question: {query_log.query_text}\n\nAnswer: {query_log.answer_text}"
-
-    # Use the export service to create a file-like object in memory
     file_buffer = export_service.to_txt(content)
+    mock_upload_file = io.BytesIO(file_buffer.getvalue()) # Create a BytesIO object for upload
 
-    # Create a mock UploadFile to pass to the storage service
-    mock_upload_file = UploadFile(filename=new_filename, file=file_buffer)
-
-    # This is a simplified call to the upload logic. In a real app, this might be
-    # refactored into a shared service function to avoid code duplication.
     unique_filename = f"{uuid.uuid4()}_{new_filename}"
     storage_service.upload(file=mock_upload_file, destination_filename=unique_filename)
 
@@ -101,22 +102,16 @@ def save_query_as_document(
     db.refresh(db_document)
 
     rag_system.process_document(document_id=db_document.id, document_text=content)
-
     return db_document
-
-export_service = ExportService()
 
 @router.get("/{query_id}/export")
 def export_query_result(
     query_id: int,
-    format: str, # 'pdf', 'docx', or 'txt'
+    format: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
-    query_log = db.query(QueryLog).filter(
-        QueryLog.id == query_id, QueryLog.user_id == current_user.id
-    ).first()
-
+    query_log = db.query(QueryLog).filter(QueryLog.id == query_id, QueryLog.user_id == current_user.id).first()
     if not query_log:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Query not found")
 
@@ -130,7 +125,7 @@ def export_query_result(
         file_buffer = export_service.to_docx(content)
         media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         filename = f"query_{query_id}.docx"
-    else: # Default to txt
+    else:
         file_buffer = export_service.to_txt(content)
         media_type = "text/plain"
         filename = f"query_{query_id}.txt"

@@ -78,4 +78,11 @@ As an admin, you can view and delete any categories created by users. This is us
 
 You can configure system-wide settings from the "Settings" tab.
 
-*   **Default Document Expiration:** Set a default number of days after which newly uploaded documents will expire. Leave it blank to disable default expiration. This setting can be overridden by users during upload.
+*   **Default Document Expiration:** Set a default number of days after which newly uploaded documents will expire.
+*   **Theme Settings:** Set a default theme for all new users.
+
+---
+
+## 8. Usage Analytics
+
+The "Analytics" tab provides a dashboard with visualizations of system usage, such as the number of queries performed per day. This is useful for monitoring the system's activity and understanding user engagement.

@@ -68,9 +68,20 @@ class QueryInput(BaseModel):
     question: str
     document_ids: Optional[list[int]] = None
     category_id: Optional[int] = None
+    llm_config_id: Optional[int] = None
 
 class QueryOutput(BaseModel):
     answer: str
+    query_id: int
+
+class QueryLogOut(BaseModel):
+    id: int
+    query_text: str
+    answer_text: str
+    created_at: datetime.datetime
+
+    class Config:
+        orm_mode = True
 
 # --- LLM/API Config Schemas ---
 class LLMConfigBase(BaseModel):

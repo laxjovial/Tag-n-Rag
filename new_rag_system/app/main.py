@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from .database import create_db_and_tables
-from .api import auth, documents, query, admin, notifications, categories
+from .api import auth, documents, query, admin, notifications, categories, history, user
 from .services.expiration import start_background_tasks
 
 app = FastAPI(
@@ -28,6 +28,8 @@ app.include_router(query.router, prefix="/query", tags=["Query"])
 app.include_router(admin.router, prefix="/admin", tags=["Admin"])
 app.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
 app.include_router(categories.router, prefix="/categories", tags=["Categories"])
+app.include_router(history.router, prefix="/history", tags=["History"])
+app.include_router(user.router, prefix="/user", tags=["User"])
 
 @app.get("/", tags=["Root"])
 def read_root():

@@ -8,6 +8,7 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     role = Column(String, default="user", nullable=False) # "user" or "admin"
+    theme = Column(String, default="light", nullable=False) # "light" or "dark"
 
     documents = relationship("Document", back_populates="owner")
     queries = relationship("QueryLog", back_populates="user")

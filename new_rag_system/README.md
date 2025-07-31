@@ -8,11 +8,12 @@ This project is a sophisticated, standalone Retrieval-Augmented Generation (RAG)
 
 *   **Document Management:**
     *   **Cloud Storage:** All documents are securely stored in Google Cloud Storage.
-    *   **Multi-File Ingestion:** Upload multiple documents at once.
-    *   **Categorization:** Organize documents into custom categories (e.g., "Legal", "Medical").
-    *   **Versioning:** Automatically retains previous versions of updated documents.
-    *   **Expiration & Notifications:** Set a custom expiration date for documents or use a system-wide default. Receive notifications before documents are automatically deleted.
-    *   **Search & Peek:** Full-text search for documents by name and content peeking.
+    *   **Multi-File Ingestion & Categorization:** Upload multiple documents at once and assign them to custom categories.
+    *   **Editable Documents:** Users can edit the content of their documents directly within the application.
+    *   **Expiration & Notifications:** Set custom expiration dates or use a system-wide default, with notifications for pending deletions.
+*   **Knowledge Creation & Export:**
+    *   **Save & Export Queries:** Save query results as new, searchable documents within the system.
+    *   **Export Formats:** Export query results to PDF, DOCX, or TXT.
 *   **Intelligent Querying:**
     *   **Flexible Querying:** Query individual documents, multiple documents, or entire categories at once.
     *   **Query History:** Access a complete history of all past queries.
