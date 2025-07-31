@@ -181,5 +181,6 @@ You can now access the web application at `http://localhost:8501`.
 
 ### 6.2. Document Categorization
 *   **Database:** A many-to-many relationship has been established between `documents` and `categories` tables, linked by the `document_category` association table. The `User` model now includes a `theme` preference.
-*   **API:** The API has been expanded with endpoints for managing user profiles (`/user`), handling document edits, exporting queries, and saving queries as new documents.
+*   **API:** The API has been expanded with endpoints for managing user profiles (`/user`), handling document edits, exporting queries, and saving queries as new documents. It also includes endpoints for creating documents from raw text (`/documents/from_text`) and exporting any document (`/documents/{doc_id}/export`).
 *   **LLM Flexibility:** The `RAGSystem` has been refactored to dynamically load LLM configurations, allowing for seamless integration with any Langchain-compatible model, including local models served via an API like Ollama. Refer to `llm_integration_guide.md` for detailed instructions.
+*   **Export Service:** A new `ExportService` in `app/services/export.py` handles the generation of PDF, DOCX, and TXT files from text content.

@@ -39,12 +39,15 @@ The system is designed with a modern, decoupled architecture that separates the 
 
 ### 3.1. Document Ingestion Flow
 
-1.  **Upload:** A user uploads one or more files via the Streamlit frontend.
-2.  **API Request:** The frontend sends a POST request with the files to the FastAPI backend (`/documents/upload`).
-3.  **Store in GCS:** The backend uploads the original file to a GCS bucket and gets a unique filename.
-4.  **Create Metadata:** A new `Document` record is created in the PostgreSQL database with the file's metadata (unique GCS filename, original filename, owner, categories, etc.).
-5.  **Process & Embed:** The backend reads the file's content, splits it into chunks, and uses the `RAGSystem` to generate vector embeddings for each chunk.
-6.  **Store in Vector DB:** The chunks and their embeddings are stored in ChromaDB, linked by the document's ID.
+1.  **Document Creation:** A user creates a document in one of three ways:
+    *   **File Upload:** Uploading files via the UI.
+    *   **From Text:** Pasting raw text into the UI.
+    *   **From Query:** Saving a query result as a new document.
+2.  **API Request:** The frontend sends a POST request to the appropriate FastAPI backend endpoint (e.g., `/documents/upload`, `/documents/from_text`).
+3.  **Store in GCS:** The backend saves the document content to a new file in a GCS bucket with a unique filename.
+4.  **Create Metadata:** A new `Document` record is created in the PostgreSQL database with the file's metadata.
+5.  **Process & Embed:** The document's content is processed and embedded by the `RAGSystem`.
+6.  **Store in Vector DB:** The embeddings are stored in ChromaDB.
 
 ### 3.2. Query Lifecycle
 

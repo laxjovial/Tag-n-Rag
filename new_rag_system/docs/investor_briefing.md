@@ -31,6 +31,8 @@ The Advanced RAG (Retrieval-Augmented Generation) System is a turnkey solution t
     *   **Expiration Policies:** Administrators can set system-wide default expiration dates for documents, ensuring compliance and automatically managing data lifecycle.
 *   **Highly Configurable:** Our platform is model-agnostic. Clients can choose to use major commercial LLMs (like OpenAI's GPT series), open-source models, or even integrate their own proprietary APIs, preventing vendor lock-in and ensuring data privacy.
 *   **Intuitive and User-Friendly:** A clean, simple interface allows any user, regardless of technical skill, to easily upload documents and start asking questions.
+*   **Knowledge Creation Loop:** The system is not just for consumption; it's for creation. Users can save their query results as new, searchable documents, effectively allowing the system to learn and build upon its own insights.
+*   **Universal Export:** Any document, whether uploaded or generated, can be exported to standard formats like PDF, DOCX, and TXT, ensuring data portability and integration with other workflows.
 
 ---
 
