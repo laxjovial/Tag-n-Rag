@@ -35,41 +35,55 @@ This project is a sophisticated, standalone Retrieval-Augmented Generation (RAG)
 
 ## Getting Started
 
-### Prerequisites
+This guide will walk you through setting up and running the application on your local machine.
 
-*   Python 3.8+
-*   Poetry (or pip) for dependency management
-*   Docker and Docker Compose (for running databases)
+### 1. Prerequisites
+-   Python 3.9+
+-   `pip` for dependency management.
+-   An OpenAI API key (or another LLM provider's key).
+-   Google Cloud SDK `gcloud` authenticated, with a GCS bucket created.
 
-### Installation & Setup
+### 2. Step-by-Step Setup
 
-1.  **Clone the repository:**
+**Step 1: Clone the Repository**
+```bash
+git clone <repository-url>
+cd new_rag_system
+```
+
+**Step 2: Set Up a Virtual Environment**
+It is highly recommended to use a virtual environment to manage dependencies.
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+```
+
+**Step 3: Install Dependencies**
+```bash
+pip install -r requirements.txt
+```
+
+**Step 4: Configure Your Environment**
+1.  Make a copy of the example environment file:
     ```bash
-    git clone <repository-url>
-    cd new_rag_system
+    cp .env.example .env
     ```
+2.  Open the `.env` file in a text editor.
+3.  **`DATABASE_URL`**: For local development, the default SQLite database is fine. For production, change this to your PostgreSQL connection string.
+4.  **`SECRET_KEY`**: Generate a new secret key by running `openssl rand -hex 32` in your terminal and paste the result here.
+5.  **`OPENAI_API_KEY`**: Add your API key for OpenAI or any other LLM provider you plan to use.
+6.  **`CLOUD_STORAGE_BUCKET`**: Enter the name of the Google Cloud Storage bucket you created.
 
-2.  **Install dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
+**Step 5: Run the Backend Server**
+Open a terminal and run the following command from the `new_rag_system` directory:
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+The API will be running at `http://localhost:8000`.
 
-3.  **Set up environment variables:**
-    Create a `.env` file in the root directory and add the necessary credentials for your database, LLM providers, and other services. A `env.example` file will be provided to guide you.
-
-4.  **Launch databases:**
-    ```bash
-    docker-compose up -d
-    ```
-
-5.  **Run the backend server:**
-    ```bash
-    uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-    ```
-
-6.  **Run the Streamlit frontend:**
-    Open a new terminal and run:
-    ```bash
-    streamlit run app.py
-    ```
-The application will be available at `http://localhost:8501`.
+**Step 6: Run the Frontend Application**
+Open a **new** terminal and run the following command from the `new_rag_system` directory:
+```bash
+streamlit run app.py
+```
+You can now access the web application by navigating to `http://localhost:8501` in your browser.

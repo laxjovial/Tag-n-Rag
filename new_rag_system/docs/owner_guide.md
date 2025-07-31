@@ -17,7 +17,7 @@ The backend is the core of the system, handling all business logic, data process
 *   **API Endpoints (`/main.py`, `/api/`):** Exposes a RESTful API for the frontend to consume. Endpoints are organized by functionality (e.g., `auth_api.py`, `document_api.py`).
 *   **Services (`/services/`):** Contain the business logic. For example, the `RAGService` would orchestrate the process of retrieving documents and generating answers.
 *   **Database Models (`/database.py`):** Defines the SQLAlchemy models for the PostgreSQL database, representing tables for users, documents, etc.
-*   **Authentication:** A robust JWT-based authentication system (`auth_api.py`) secures the endpoints. Passwords are never stored in plain text; they are hashed using `passlib`.
+*   **Authentication (JWT):** The system uses a robust JSON Web Token (JWT) based authentication system, implemented in `app/api/auth.py`. This ensures that all endpoints are secure and that users can only access their own data. For more details on the JWT implementation and configuration, see the `jwt_authentication.md` guide.
 
 ### 2.2. Streamlit Frontend
 
@@ -124,6 +124,54 @@ The modular architecture makes it straightforward to extend the system.
 *   **Cloud Storage (Google Cloud Storage):** The system is now fully integrated with GCS for persistent and scalable document storage. The `CloudStorageService` in `app/services/storage.py` handles all interactions with the GCS API.
     *   **Configuration:** To enable GCS, you must set the `CLOUD_STORAGE_BUCKET` environment variable in your `.env` file. You must also ensure that the application's environment has the necessary GCS credentials (e.g., by setting the `GOOGLE_APPLICATION_CREDENTIALS` environment variable to point to your service account key file).
 *   **Scalability:** The backend can be scaled horizontally by running multiple instances of the FastAPI server behind a load balancer.
+
+---
+
+## 6. Setup and Running Instructions
+
+This guide will walk you through setting up and running the application on your local machine.
+
+### 6.1. Prerequisites
+-   Python 3.9+
+-   `pip` for dependency management.
+-   An OpenAI API key (or another LLM provider's key).
+-   Google Cloud SDK `gcloud` authenticated, with a GCS bucket created.
+
+### 6.2. Step-by-Step Setup
+
+**Step 1: Clone the Repository**
+```bash
+git clone <repository-url>
+cd new_rag_system
+```
+
+**Step 2: Set Up a Virtual Environment**
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+```
+
+**Step 3: Install Dependencies**
+```bash
+pip install -r requirements.txt
+```
+
+**Step 4: Configure Your Environment**
+1.  Make a copy of the example environment file:
+    ```bash
+    cp .env.example .env
+    ```
+2.  Open the `.env` file in a text editor.
+3.  **`DATABASE_URL`**: For production, change this to your PostgreSQL connection string.
+4.  **`SECRET_KEY`**: Generate a new secret key by running `openssl rand -hex 32`.
+5.  **`OPENAI_API_KEY`**: Add your API key for OpenAI or any other provider.
+6.  **`CLOUD_STORAGE_BUCKET`**: Enter the name of your GCS bucket.
+
+**Step 5: Run the Backend & Frontend**
+-   **Backend:** `uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload`
+-   **Frontend:** `streamlit run app.py`
+
+You can now access the web application at `http://localhost:8501`.
 
 ## 6. New Features Details
 
