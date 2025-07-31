@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from .. import schemas
-from ..database import get_db, QueryLog, User
+from ..database import get_db
+from ..models import QueryLog, User
 from .auth import get_current_active_user
 from .documents import rag_system # Import the shared RAG system instance
 

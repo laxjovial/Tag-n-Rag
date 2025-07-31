@@ -1,4 +1,9 @@
 from fastapi import FastAPI
+from dotenv import load_dotenv
+
+# Load environment variables from .env file before other imports
+load_dotenv()
+
 from .database import create_db_and_tables
 from .api import auth, documents, query, admin
 from .services.expiration import start_background_tasks

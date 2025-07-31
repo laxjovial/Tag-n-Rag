@@ -9,7 +9,8 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from .. import schemas
-from ..database import get_db, User
+from ..database import get_db
+from ..models import User
 
 # --- Configuration ---
 # In a real app, load these from a .env file or other config management

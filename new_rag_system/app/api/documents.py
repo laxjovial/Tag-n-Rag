@@ -4,17 +4,20 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
+import uuid
 from .. import schemas
-from ..database import get_db, Document, User
+from ..database import get_db
+from ..models import Document, User
 from ..rag import RAGSystem
 from .auth import get_current_active_user
 from ..utils import read_file_content
+from ..services.storage import CloudStorageService
 
 router = APIRouter()
 
-# Create a single, shared instance of the RAGSystem
-# In a larger application, you might manage this with a dependency injection system
+# Create shared instances of services
 rag_system = RAGSystem()
+storage_service = CloudStorageService()
 
 @router.post("/upload", response_model=schemas.DocumentOut)
 def upload_document(
@@ -25,14 +28,21 @@ def upload_document(
     current_user: User = Depends(get_current_active_user),
 ):
     try:
-        # 1. Read file content
+        # 1. Read file content for processing
         document_text = read_file_content(file)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
-    # 2. Save document metadata to the database
+    # Generate a unique filename for storage to avoid collisions
+    unique_filename = f"{uuid.uuid4()}_{file.filename}"
+
+    # 2. Upload original file to cloud storage
+    storage_service.upload(file=file, destination_filename=unique_filename)
+
+    # 3. Save document metadata to the database
     db_document = Document(
-        filename=file.filename,
+        filename=unique_filename, # Store the unique name
+        original_filename=file.filename, # Keep track of the original name
         owner_id=current_user.id,
         parent_document_id=parent_document_id,
     )
@@ -51,7 +61,7 @@ def upload_document(
     db.commit()
     db.refresh(db_document)
 
-    # 3. Process the document with the RAG system
+    # 4. Process the document with the RAG system
     rag_system.process_document(document_id=db_document.id, document_text=document_text)
 
     return db_document
