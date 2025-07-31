@@ -5,9 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,
 from sqlalchemy.orm import Session
 
 import uuid
+from datetime import timedelta
 from .. import schemas
 from ..database import get_db
-from ..models import Document, User
+from ..models import Document, User, Setting, Category
 from ..rag import RAGSystem
 from .auth import get_current_active_user
 from ..utils import read_file_content
@@ -19,52 +20,72 @@ router = APIRouter()
 rag_system = RAGSystem()
 storage_service = CloudStorageService()
 
-@router.post("/upload", response_model=schemas.DocumentOut)
-def upload_document(
-    file: UploadFile = File(...),
+from typing import List
+
+@router.post("/upload", response_model=List[schemas.DocumentOut])
+def upload_documents(
+    files: List[UploadFile] = File(...),
     expires_at: Optional[str] = Form(None),
-    parent_document_id: Optional[int] = Form(None),
+    category_ids: Optional[List[int]] = Form(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
-    try:
-        # 1. Read file content for processing
-        document_text = read_file_content(file)
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    uploaded_docs = []
 
-    # Generate a unique filename for storage to avoid collisions
-    unique_filename = f"{uuid.uuid4()}_{file.filename}"
+    # Get default expiration from settings
+    default_expiration_days = None
+    setting = db.query(Setting).filter(Setting.key == "default_expiration_days").first()
+    if setting and setting.value.isdigit():
+        default_expiration_days = int(setting.value)
 
-    # 2. Upload original file to cloud storage
-    storage_service.upload(file=file, destination_filename=unique_filename)
+    # Fetch categories if provided
+    categories = []
+    if category_ids:
+        categories = db.query(Category).filter(Category.id.in_(category_ids)).all()
 
-    # 3. Save document metadata to the database
-    db_document = Document(
-        filename=unique_filename, # Store the unique name
-        original_filename=file.filename, # Keep track of the original name
-        owner_id=current_user.id,
-        parent_document_id=parent_document_id,
-    )
-    if expires_at:
-        db_document.expires_at = datetime.fromisoformat(expires_at)
+    for file in files:
+        try:
+            document_text = read_file_content(file)
+        except ValueError as e:
+            print(f"Skipping unsupported file '{file.filename}': {e}")
+            continue
 
-    # Handle versioning
-    if parent_document_id:
-        latest_version = db.query(Document).filter(
-            Document.parent_document_id == parent_document_id
-        ).order_by(Document.version.desc()).first()
-        if latest_version:
-            db_document.version = latest_version.version + 1
+        unique_filename = f"{uuid.uuid4()}_{file.filename}"
 
-    db.add(db_document)
-    db.commit()
-    db.refresh(db_document)
+        try:
+            storage_service.upload(file=file, destination_filename=unique_filename)
+        except Exception as e:
+            print(f"Failed to upload '{file.filename}', skipping this file. Error: {e}")
+            continue
 
-    # 4. Process the document with the RAG system
-    rag_system.process_document(document_id=db_document.id, document_text=document_text)
+        db_document = Document(
+            filename=unique_filename,
+            original_filename=file.filename,
+            owner_id=current_user.id,
+            categories=categories, # Assign categories
+        )
 
-    return db_document
+        if expires_at:
+            db_document.expires_at = datetime.fromisoformat(expires_at)
+        elif default_expiration_days is not None:
+            db_document.expires_at = datetime.utcnow() + timedelta(days=default_expiration_days)
+
+        db.add(db_document)
+        db.commit()
+        db.refresh(db_document)
+
+        # 4. Process the document with the RAG system
+        rag_system.process_document(document_id=db_document.id, document_text=document_text)
+
+        uploaded_docs.append(db_document)
+
+    if not uploaded_docs:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No valid files were uploaded."
+        )
+
+    return uploaded_docs
 
 
 @router.get("/", response_model=List[schemas.DocumentOut])

@@ -1,8 +1,9 @@
 import time
 import threading
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from ..database import SessionLocal, Document
+from ..models import Notification
 from ..rag import RAGSystem
 
 def check_and_delete_expired_documents():
@@ -32,23 +33,51 @@ def check_and_delete_expired_documents():
     finally:
         db.close()
 
-def run_expiration_service(interval_seconds: int = 3600):
+def check_and_notify_expiring_documents(warning_days: int = 7):
     """
-    Runs the expiration check periodically.
+    Checks for documents that are expiring soon and notifies the owner.
+    """
+    db: Session = SessionLocal()
+    try:
+        warning_date = datetime.utcnow() + timedelta(days=warning_days)
+        expiring_docs = db.query(Document).filter(
+            Document.expires_at != None,
+            Document.expires_at <= warning_date
+        ).all()
 
-    Args:
-        interval_seconds (int): The interval in seconds to wait between checks.
-                                Defaults to 1 hour.
+        for doc in expiring_docs:
+            # Avoid sending duplicate notifications
+            existing_notif = db.query(Notification).filter_by(
+                user_id=doc.owner_id,
+                message=f"Your document '{doc.original_filename}' is set to expire on {doc.expires_at.date()}."
+            ).first()
+
+            if not existing_notif:
+                notification = Notification(
+                    user_id=doc.owner_id,
+                    message=f"Your document '{doc.original_filename}' is set to expire on {doc.expires_at.date()}."
+                )
+                db.add(notification)
+                print(f"Created expiration warning for user {doc.owner_id} for document {doc.id}")
+        db.commit()
+    finally:
+        db.close()
+
+def run_background_services(interval_seconds: int = 3600):
+    """
+    Runs all periodic background services.
     """
     while True:
+        print("Running background services...")
         check_and_delete_expired_documents()
+        check_and_notify_expiring_documents()
+        print("Background services finished. Sleeping...")
         time.sleep(interval_seconds)
 
 def start_background_tasks():
     """
     Starts the background services in a separate thread.
     """
-    # Run the expiration service in a daemon thread so it doesn't block exit
-    expiration_thread = threading.Thread(target=run_expiration_service, daemon=True)
-    expiration_thread.start()
-    print("Document expiration service started in the background.")
+    background_thread = threading.Thread(target=run_background_services, daemon=True)
+    background_thread.start()
+    print("Background services started.")

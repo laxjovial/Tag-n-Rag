@@ -1,6 +1,8 @@
 import datetime
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, relationship
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
 from ..database import Base
+from .category import document_category_association
 
 class Document(Base):
     __tablename__ = "documents"
@@ -16,3 +18,9 @@ class Document(Base):
 
     owner = relationship("User", back_populates="documents")
     parent_document = relationship("Document", remote_side=[id])
+
+    categories = relationship(
+        "Category",
+        secondary=document_category_association,
+        back_populates="documents"
+    )

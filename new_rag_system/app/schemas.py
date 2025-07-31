@@ -16,6 +16,29 @@ class UserOut(UserBase):
     class Config:
         orm_mode = True
 
+# --- Category Schemas ---
+class CategoryBase(BaseModel):
+    name: str
+
+class CategoryCreate(CategoryBase):
+    pass
+
+class CategoryOut(CategoryBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+# --- Notification Schemas ---
+class NotificationOut(BaseModel):
+    id: int
+    message: str
+    is_read: bool
+    created_at: datetime.datetime
+
+    class Config:
+        orm_mode = True
+
 # --- Token Schemas ---
 class Token(BaseModel):
     access_token: str
@@ -39,7 +62,8 @@ class DocumentOut(BaseModel):
 # --- Query Schemas ---
 class QueryInput(BaseModel):
     question: str
-    document_ids: list[int]
+    document_ids: Optional[list[int]] = None
+    category_id: Optional[int] = None
 
 class QueryOutput(BaseModel):
     answer: str

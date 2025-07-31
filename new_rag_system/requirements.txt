@@ -17,3 +17,4 @@ tiktoken
 openai
 pytest
 python-multipart
+google-cloud-storage
