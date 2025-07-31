@@ -1,0 +1,50 @@
+# Recruiter Overview: Advanced RAG System
+
+## Project Summary
+
+This project is a full-stack, enterprise-grade Retrieval-Augmented Generation (RAG) system. It provides a complete solution for organizations to turn their internal documents into a secure, queryable knowledge base. The application features a Python-based backend using FastAPI and an interactive frontend built with Streamlit.
+
+As the sole developer, I was responsible for the entire lifecycle of this project, from conceptualization and architectural design to implementation and documentation.
+
+---
+
+## Key Technical Achievements & Demonstrated Skills
+
+This project showcases a wide range of skills in modern software engineering, AI implementation, and full-stack development.
+
+### 1. Backend Development (Python, FastAPI)
+
+*   **API Design:** Designed and built a comprehensive RESTful API to handle user authentication, document management, querying, and admin functions.
+*   **Authentication & Security:** Implemented a secure user authentication and authorization system from scratch using JSON Web Tokens (JWT). This includes password hashing (`passlib`) and token expiration.
+*   **Database Integration:** Managed interactions with a PostgreSQL database using the SQLAlchemy ORM, including schema design and data manipulation.
+*   **Asynchronous Processing:** Developed a background task manager within FastAPI to handle long-running processes like the automatic deletion of expired documents.
+
+### 2. AI and Machine Learning (Langchain, ChromaDB)
+
+*   **RAG Pipeline Implementation:** Engineered the core AI functionality, including document loading (PDF, DOCX, TXT), text splitting, vector embedding, and retrieval.
+*   **Vector Database Management:** Integrated ChromaDB as the vector store for efficient similarity searching.
+*   **Flexible Generation:** Designed a highly flexible generation module that can seamlessly switch between different Large Language Models (e.g., from OpenAI, Anthropic) and external, third-party APIs, all configured via a simple YAML file. This demonstrates an understanding of modular and extensible AI systems.
+
+### 3. Frontend Development (Python, Streamlit)
+
+*   **Interactive UI/UX:** Built a user-friendly, multi-page web application using Streamlit, providing a seamless experience for users and administrators.
+*   **State Management:** Effectively managed user session data, including authentication state and API tokens, within the Streamlit framework.
+*   **API Consumption:** Connected the frontend to the FastAPI backend, handling API requests and responses for a dynamic user experience.
+
+### 4. Software Architecture & Design
+
+*   **System Design:** Architected a scalable, decoupled system with a clear separation of concerns between the frontend, backend, and data layers.
+*   **Database Schema Design:** Designed a normalized relational database schema in PostgreSQL to efficiently store and manage users, document metadata, versioning, and query logs.
+*   **Configuration Management:** Implemented a robust configuration system using environment variables and YAML files to manage sensitive keys and application settings, a best practice for deployable applications.
+
+---
+
+## Technology Stack Summary
+
+*   **Languages:** Python
+*   **Backend:** FastAPI
+*   **Frontend:** Streamlit
+*   **AI/ML:** Langchain, Sentence-Transformers
+*   **Databases:** PostgreSQL (for structured data), ChromaDB (for vector data)
+*   **Libraries:** SQLAlchemy, Pydantic, Passlib, PyYAML
+*   **Tools:** Docker, Git
