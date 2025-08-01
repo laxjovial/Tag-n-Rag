@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict # Added ConfigDict
 from typing import Optional
 import datetime
 
@@ -13,8 +13,7 @@ class UserOut(UserBase):
     id: int
     role: str
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True) # Updated
 
 # --- Category Schemas ---
 class CategoryBase(BaseModel):
@@ -26,8 +25,7 @@ class CategoryCreate(CategoryBase):
 class CategoryOut(CategoryBase):
     id: int
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True) # Updated
 
 # --- Notification Schemas ---
 class NotificationOut(BaseModel):
@@ -36,8 +34,7 @@ class NotificationOut(BaseModel):
     is_read: bool
     created_at: datetime.datetime
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True) # Updated
 
 # --- Token Schemas ---
 class Token(BaseModel):
@@ -57,8 +54,7 @@ class DocumentOut(BaseModel):
     created_at: datetime.datetime
     expires_at: Optional[datetime.datetime] = None
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True) # Updated
 
 class DocumentUpdate(BaseModel):
     content: str
@@ -85,8 +81,7 @@ class QueryLogOut(BaseModel):
     answer_text: str
     created_at: datetime.datetime
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True) # Updated
 
 # --- LLM/API Config Schemas ---
 class LLMConfigBase(BaseModel):
@@ -100,8 +95,20 @@ class LLMConfigBase(BaseModel):
 class LLMConfigCreate(LLMConfigBase):
     pass
 
-class LLMConfigOut(LLMConfigBase):
+class LLMConfig(LLMConfigBase):
     id: int
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True) # Updated
+
+# --- Setting Schemas ---
+class SettingBase(BaseModel):
+    key: str
+    value: str
+
+class SettingCreate(SettingBase):
+    pass
+
+class SettingOut(SettingBase):
+    id: int
+
+    model_config = ConfigDict(from_attributes=True) # Updated
