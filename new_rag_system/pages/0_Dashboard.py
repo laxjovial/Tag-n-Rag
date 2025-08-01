@@ -5,11 +5,12 @@ from typing import List, Dict
 
 st.set_page_config(page_title="Dashboard", layout="wide")
 
-API_BASE_URL = "http://localhost:8000"
+API_BASE_URL = "http://127.0.0.1:8000"
 
 # --- API Functions ---
 @st.cache_data(ttl=300) # Cache data for 5 minutes
 def get_dashboard_data(token: str) -> Dict:
+    """Fetches dashboard data (documents, categories, notifications) from the API."""
     headers = {"Authorization": f"Bearer {token}"}
     docs = requests.get(f"{API_BASE_URL}/documents/", headers=headers).json()
     cats = requests.get(f"{API_BASE_URL}/categories/", headers=headers).json()
@@ -17,24 +18,28 @@ def get_dashboard_data(token: str) -> Dict:
     return {"documents": docs, "categories": cats, "notifications": notifs}
 
 def create_category(token: str, name: str):
+    """Creates a new category via the API."""
     headers = {"Authorization": f"Bearer {token}"}
     requests.post(f"{API_BASE_URL}/categories/", json={"name": name}, headers=headers).raise_for_status()
-    st.cache_data.clear() # Clear cache after mutation
+    st.cache_data.clear() # Clear cache after mutation to ensure fresh data
 
 def delete_category(token: str, cat_id: int):
+    """Deletes a category via the API."""
     headers = {"Authorization": f"Bearer {token}"}
     requests.delete(f"{API_BASE_URL}/categories/{cat_id}", headers=headers).raise_for_status()
-    st.cache_data.clear()
+    st.cache_data.clear() # Clear cache after mutation
 
 def mark_notification_read(token: str, notif_id: int):
+    """Marks a notification as read via the API."""
     headers = {"Authorization": f"Bearer {token}"}
     requests.post(f"{API_BASE_URL}/notifications/{notif_id}/read", headers=headers).raise_for_status()
-    st.cache_data.clear()
+    st.cache_data.clear() # Clear cache after mutation
 
 def update_theme(token: str, theme: str):
+    """Updates the user's theme preference via the API."""
     headers = {"Authorization": f"Bearer {token}"}
     requests.put(f"{API_BASE_URL}/user/profile/theme", json={"theme": theme}, headers=headers).raise_for_status()
-    st.session_state.theme = theme
+    st.session_state.theme = theme # Update session state immediately
 
 st.title("Your Dashboard")
 
@@ -66,19 +71,27 @@ else:
                         st.subheader(doc['original_filename'])
                         st.caption(f"Created: {pd.to_datetime(doc['created_at']).strftime('%Y-%m-%d %H:%M')}")
                         b1, b2, b3, b4 = st.columns(4)
-                        b1.page_link("pages/7_Edit_Document.py", label="Edit", icon="✏️", query_params={"doc_id": doc['id']})
+                        # Removed 'query_params' as it's not supported in all Streamlit versions for st.page_link
+                        # To pass doc_id, you would typically encode it in the URL path or use Streamlit's query string directly
+                        # For now, we'll just link to the page without parameters.
+                        # If you need to pass data, consider using st.session_state or a different navigation pattern.
+                        b1.page_link("pages/7_Edit_Document.py", label="Edit", icon="✏️")
                         # Export buttons and delete would go here
             else:
                 st.info("You have no documents.")
 
         with tab2:
             st.header("Manage Your Categories")
-            for cat in cats:
-                cat_col1, cat_col2 = st.columns([4, 1])
-                cat_col1.write(cat['name'])
-                if cat_col2.button("Delete", key=f"del_cat_{cat['id']}"):
-                    delete_category(st.session_state.token, cat['id'])
-                    st.rerun()
+            if cats:
+                for cat in cats:
+                    cat_col1, cat_col2 = st.columns([4, 1])
+                    cat_col1.write(cat['name'])
+                    if cat_col2.button("Delete", key=f"del_cat_{cat['id']}"):
+                        delete_category(st.session_state.token, cat['id'])
+                        st.rerun()
+            else:
+                st.info("No categories available. Create one below.")
+
 
             with st.form("new_cat_form", clear_on_submit=True):
                 new_cat_name = st.text_input("New Category Name")
@@ -86,6 +99,9 @@ else:
                     if new_cat_name:
                         create_category(st.session_state.token, new_cat_name)
                         st.rerun()
+                    else:
+                        st.warning("Please enter a category name.")
+
 
         with tab3:
             st.header("Your Notifications")
@@ -112,5 +128,12 @@ else:
 
     except requests.exceptions.RequestException as e:
         st.error(f"An API error occurred: {e}")
+        if e.response is not None:
+            try:
+                error_detail = e.response.json().get('detail', 'No additional detail provided by server.')
+                st.error(f"Server response detail: {error_detail}")
+            except requests.exceptions.JSONDecodeError:
+                st.error(f"Server returned non-JSON response: {e.response.text}")
     except Exception as e:
         st.error(f"An unexpected error occurred: {e}")
+
