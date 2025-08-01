@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 
 # --- Configuration ---
-API_BASE_URL = "http://localhost:8000"
+API_BASE_URL = "http://127.0.0.1:8000"
 
 def apply_theme(theme):
     # This is a basic way to set the theme. Streamlit's theming is limited.
@@ -15,24 +15,40 @@ def apply_theme(theme):
 def login(username, password):
     try:
         response = requests.post(f"{API_BASE_URL}/auth/login", data={"username": username, "password": password})
-        response.raise_for_status()
+        response.raise_for_status() # This will raise an HTTPError for bad responses (4xx or 5xx)
         token = response.json()["access_token"]
 
         # Fetch user profile to get theme
         headers = {"Authorization": f"Bearer {token}"}
-        user_profile = requests.get(f"{API_BASE_URL}/user/me", headers=headers).json()
+        user_profile_response = requests.get(f"{API_BASE_URL}/user/me", headers=headers)
+        user_profile_response.raise_for_status() # Raise for errors on user profile fetch
+        user_profile = user_profile_response.json()
 
         return token, user_profile.get("theme", "light")
-    except requests.exceptions.RequestException:
+    except requests.exceptions.RequestException as e:
+        st.error(f"Login failed: {e}")
+        if e.response is not None:
+            try:
+                error_detail = e.response.json().get('detail', 'No detail provided.')
+                st.error(f"Server response: {error_detail}")
+            except requests.exceptions.JSONDecodeError:
+                st.error(f"Server returned non-JSON response: {e.response.text}")
         return None, None
 
 def register(username, password):
     try:
-        requests.post(f"{API_BASE_URL}/auth/register", json={"username": username, "password": password}).raise_for_status()
+        response = requests.post(f"{API_BASE_URL}/auth/register", json={"username": username, "password": password})
+        response.raise_for_status() # This will raise an HTTPError for bad responses (4xx or 5xx)
         st.success("Registration successful! You can now log in.")
         return True
     except requests.exceptions.RequestException as e:
-        st.error(f"Registration failed: {e.response.json().get('detail', 'Unknown error')}")
+        st.error(f"Registration failed: {e}")
+        if e.response is not None:
+            try:
+                error_detail = e.response.json().get('detail', 'No detail provided.')
+                st.error(f"Server response: {error_detail}")
+            except requests.exceptions.JSONDecodeError:
+                st.error(f"Server returned non-JSON response: {e.response.text}")
         return False
 
 # --- Main App ---
@@ -60,9 +76,7 @@ if st.session_state.token is None:
                     st.session_state.token = token
                     st.session_state.theme = theme
                     st.rerun()
-                else:
-                    st.error("Login failed. Please check your credentials.")
-
+                # else:  The error message is now handled inside the login function
     with register_tab:
         with st.form("register_form"):
             reg_username = st.text_input("Choose a Username")
@@ -81,4 +95,5 @@ else:
 
 # --- Footer ---
 st.markdown("---")
+# Removed 'query_params' as it's not supported in all Streamlit versions for st.page_link
 st.page_link("pages/6_Legal.py", label="Legal & Policies")
