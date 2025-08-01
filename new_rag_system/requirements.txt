@@ -19,3 +19,7 @@ pytest
 python-multipart
 google-cloud-storage
 reportlab
+fastapi
+jose
+chromadb
+langchain_community
