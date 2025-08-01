@@ -4,18 +4,20 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.prompts import PromptTemplate
 from langchain_community.chat_models import ChatOpenAI, ChatAnthropic
 from langchain_community.llms import Ollama
-from langchain.schema.runnable import Runnable
-from langchain.schema import StrPair
-from langchain_community.embeddings import SentenceTransformerEmbeddings
+from langchain_core.runnables import Runnable
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain.chains import LLMChain
 
 class RAGSystem:
     def __init__(self):
         """Initializes the RAG system with a fixed embedding model and vector store."""
-        self.embedding_model = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
-        self.client = chromadb.Client()
+        self.embedding_model = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+        # Corrected: Use HttpClient to connect to a running ChromaDB server
+        # The default host and port for a local ChromaDB server are 'localhost' and 8000
+        self.client = chromadb.HttpClient(host="localhost", port=8000)
         self.collection = self.client.get_or_create_collection(name="rag_documents")
 
-    def _get_llm_chain(self, llm_config: dict) -> Runnable[StrPair, str]:
+    def _get_llm_chain(self, llm_config: dict) -> Runnable[dict, str]:
         """Dynamically creates an LLM chain based on the provided config."""
         prompt_template = PromptTemplate(
             input_variables=["context", "question"],
@@ -31,7 +33,29 @@ class RAGSystem:
             """
         )
 
-        self.llm_chain = LLMChain(llm=self.llm, prompt=self.prompt_template)
+        llm_type = llm_config.get("type", "openai")
+        model_name = llm_config.get("model_name")
+        api_key_env = llm_config.get("api_key_env")
+
+        llm = None
+        if llm_type == "openai":
+            if not model_name:
+                model_name = "gpt-3.5-turbo"
+            llm = ChatOpenAI(model_name=model_name, api_key=os.getenv(api_key_env or "OPENAI_API_KEY"))
+        elif llm_type == "anthropic":
+            if not model_name:
+                model_name = "claude-2"
+            llm = ChatAnthropic(model_name=model_name, anthropic_api_key=os.getenv(api_key_env or "ANTHROPIC_API_KEY"))
+        elif llm_type == "ollama":
+            if not model_name:
+                model_name = "llama2"
+            llm = Ollama(model=model_name, base_url=llm_config.get("api_endpoint", "http://localhost:11434"))
+        else:
+            raise ValueError(f"Unsupported LLM type: {llm_type}")
+
+        llm_chain = LLMChain(llm=llm, prompt=prompt_template)
+        return llm_chain
+
 
     def process_document(self, document_id: int, document_text: str):
         """
@@ -48,13 +72,10 @@ class RAGSystem:
         )
         chunks = text_splitter.split_text(document_text)
 
-        # Create metadata for each chunk
         metadatas = [{"document_id": str(document_id)} for _ in chunks]
 
-        # Generate unique IDs for each chunk
         chunk_ids = [f"{document_id}_{i}" for i, _ in enumerate(chunks)]
 
-        # Add chunks to the collection
         self.collection.add(
             ids=chunk_ids,
             documents=chunks,
@@ -65,7 +86,6 @@ class RAGSystem:
         """
         Performs a RAG query using a dynamically configured LLM chain.
         """
-        # 1. Retrieve relevant document chunks
         where_filter = {"document_id": {"$in": [str(doc_id) for doc_id in document_ids]}}
         results = self.collection.query(
             query_texts=[question],
@@ -77,11 +97,10 @@ class RAGSystem:
             return "I could not find any relevant information in the selected documents."
         context = "\n\n---\n\n".join(retrieved_docs)
 
-        # 2. Dynamically create and run the LLM chain
         try:
             llm_chain = self._get_llm_chain(llm_config)
             answer = llm_chain.invoke({"context": context, "question": question})
-            return answer
+            return answer['text']
         except Exception as e:
             return f"Error during LLM query: {e}"
 
@@ -96,29 +115,27 @@ class RAGSystem:
 
 # Example Usage (for testing)
 if __name__ == '__main__':
-    # This part will not run when imported, but is useful for direct testing.
     rag_system = RAGSystem()
 
-    # 1. Process a couple of documents
+    openai_llm_config = {"type": "openai", "model_name": "gpt-3.5-turbo", "api_key_env": "OPENAI_API_KEY"}
+
     doc1_text = "The sky is blue. The grass is green."
     doc2_text = "Photosynthesis is the process by which green plants use sunlight to synthesize foods."
     rag_system.process_document(document_id=1, document_text=doc1_text)
     rag_system.process_document(document_id=2, document_text=doc2_text)
 
-    # 2. Query the documents
     query1 = "What color is the sky?"
-    answer1 = rag_system.query(question=query1, document_ids=[1])
+    answer1 = rag_system.query(question=query1, document_ids=[1], llm_config=openai_llm_config)
     print(f"Question: {query1}\nAnswer: {answer1}\n")
 
     query2 = "What is photosynthesis?"
-    answer2 = rag_system.query(question=query2, document_ids=[2])
+    answer2 = rag_system.query(question=query2, document_ids=[2], llm_config=openai_llm_config)
     print(f"Question: {query2}\nAnswer: {answer2}\n")
 
     query3 = "What is photosynthesis?"
-    answer3 = rag_system.query(question=query3, document_ids=[1]) # Querying the wrong doc
+    answer3 = rag_system.query(question=query3, document_ids=[1], llm_config=openai_llm_config)
     print(f"Question: {query3} (from wrong doc)\nAnswer: {answer3}\n")
 
-    # 3. Delete a document
     rag_system.delete_document(document_id=1)
-    answer4 = rag_system.query(question=query1, document_ids=[1])
+    answer4 = rag_system.query(question=query1, document_ids=[1], llm_config=openai_llm_config)
     print(f"Question: {query1} (after deletion)\nAnswer: {answer4}\n")
