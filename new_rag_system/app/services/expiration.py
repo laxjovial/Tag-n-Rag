@@ -2,9 +2,10 @@ import time
 import threading
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
-from ..database import SessionLocal, Document
-from ..models import Notification
+from ..database import SessionLocal
+from ..models import Document, Notification # Corrected: Import Document from .models
 from ..rag import RAGSystem
+
 
 def check_and_delete_expired_documents():
     """
@@ -32,6 +33,7 @@ def check_and_delete_expired_documents():
             db.commit()
     finally:
         db.close()
+
 
 def check_and_notify_expiring_documents(warning_days: int = 7):
     """
@@ -63,6 +65,7 @@ def check_and_notify_expiring_documents(warning_days: int = 7):
     finally:
         db.close()
 
+
 def run_background_services(interval_seconds: int = 3600):
     """
     Runs all periodic background services.
@@ -73,6 +76,7 @@ def run_background_services(interval_seconds: int = 3600):
         check_and_notify_expiring_documents()
         print("Background services finished. Sleeping...")
         time.sleep(interval_seconds)
+
 
 def start_background_tasks():
     """
