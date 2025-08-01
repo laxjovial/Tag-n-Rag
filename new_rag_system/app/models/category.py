@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Table, ForeignKey, relationship
+from sqlalchemy import Column, Integer, String, Table, ForeignKey
+from sqlalchemy.orm import relationship
 from ..database import Base
 
 # Association Table for the many-to-many relationship
