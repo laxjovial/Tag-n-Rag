@@ -64,6 +64,7 @@ def query_documents(
 
     # Prepare LLM config dictionary for RAGSystem
     llm_config_for_rag = {
+        "type": llm_config_db.name.lower().split(" ")[0],
         "name": llm_config_db.name,
         "model_name": llm_config_db.model_name,
         "api_endpoint": llm_config_db.api_endpoint,

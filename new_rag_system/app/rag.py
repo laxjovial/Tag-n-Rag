@@ -2,7 +2,7 @@ import os
 import chromadb
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.prompts import PromptTemplate
-from langchain_community.chat_models import ChatOpenAI, ChatAnthropic
+from langchain_community.chat_models import ChatOpenAI, ChatAnthropic, ChatTogether
 from langchain_community.llms import Ollama
 from langchain_core.runnables import Runnable
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -50,6 +50,13 @@ class RAGSystem:
             if not model_name:
                 model_name = "llama2"
             llm = Ollama(model=model_name, base_url=llm_config.get("api_endpoint", "http://localhost:11434"))
+        elif llm_type == "together":
+            if not model_name:
+                model_name = "mistralai/Mixtral-8x7B-Instruct-v0.1"
+            llm = ChatTogether(
+                model_name=model_name,
+                together_api_key=os.getenv(api_key_env or "TOGETHER_API_KEY"),
+            )
         else:
             raise ValueError(f"Unsupported LLM type: {llm_type}")
 
