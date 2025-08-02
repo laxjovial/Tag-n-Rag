@@ -24,4 +24,3 @@ jose
 chromadb
 langchain_community
 langchain-huggingface
-"passlib[bcrypt]"
