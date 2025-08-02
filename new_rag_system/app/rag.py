@@ -1,22 +1,40 @@
 import os
+os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
 import chromadb
+# Corrected import for HuggingFaceEmbeddings based on deprecation warning
+from langchain_huggingface import HuggingFaceEmbeddings 
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.prompts import PromptTemplate
-from langchain_community.chat_models import ChatOpenAI, ChatAnthropic, ChatTogether
+from langchain_community.chat_models import ChatOpenAI, ChatAnthropic
 from langchain_community.llms import Ollama
 from langchain_core.runnables import Runnable
-from langchain_huggingface import HuggingFaceEmbeddings
 from langchain.chains import LLMChain
+from together import Together
+
+# Import ChromaDB's LangChain adapter
+from chromadb.utils.embedding_functions.chroma_langchain_embedding_function import create_langchain_embedding
+
 
 class RAGSystem:
     def __init__(self):
         """Initializes the RAG system with a fixed embedding model and vector store."""
-        self.embedding_model = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-        # Corrected: Use HttpClient to connect to a running ChromaDB server
-        # The default host and port for a local ChromaDB server are 'localhost' and 8000
-        self.client = chromadb.HttpClient(host="localhost", port=8000)
-        self.collection = self.client.get_or_create_collection(name="rag_documents")
+        # Initialize your desired embedding model from the new package
+        self.embedding_model = HuggingFaceEmbeddings(model_name="Alibaba-NLP/gte-modernbert-base")
 
+        # Wrap the LangChain embedding model with ChromaDB's adapter
+        # This makes it compatible with ChromaDB's expected EmbeddingFunction interface
+        chroma_embedding_function = create_langchain_embedding(self.embedding_model)
+
+        # Connect to your running ChromaDB server
+        self.client = chromadb.HttpClient(host="localhost", port=8000)
+
+        # Pass the adapted embedding_function to get_or_create_collection
+        self.collection = self.client.get_or_create_collection(
+            name="rag_documents",
+            embedding_function=chroma_embedding_function # <--- Use the adapted function here
+        )
+
+ 
     def _get_llm_chain(self, llm_config: dict) -> Runnable[dict, str]:
         """Dynamically creates an LLM chain based on the provided config."""
         prompt_template = PromptTemplate(
@@ -53,7 +71,7 @@ class RAGSystem:
         elif llm_type == "together":
             if not model_name:
                 model_name = "mistralai/Mixtral-8x7B-Instruct-v0.1"
-            llm = ChatTogether(
+            llm = Together(
                 model_name=model_name,
                 together_api_key=os.getenv(api_key_env or "TOGETHER_API_KEY"),
             )
