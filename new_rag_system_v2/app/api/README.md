@@ -12,5 +12,7 @@ This directory contains the API routers for the FastAPI application. Each file d
 -   `query.py`: Handles the main RAG query, saving query results, and exporting query results.
 -   `user.py`: Handles user profile updates (e.g., theme).
 -   `admin.py`: Contains all endpoints restricted to admin users, such as analytics and system settings.
+
 -   `gdrive.py`: (V2.0) Handles listing and ingesting files from a user's Google Drive.
 -   `mappings.py`: (V2.0) Handles the creation and deletion of category-to-folder mappings for the read-on-the-fly feature.
+

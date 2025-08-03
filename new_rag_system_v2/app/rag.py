@@ -129,6 +129,7 @@ class RAGSystem:
         except Exception as e:
             return f"Error during LLM query: {e}"
 
+
     def query_on_the_fly(self, question: str, content: str, llm_config: dict) -> str:
         """
         Performs a RAG query on raw text content without persistent storage.
@@ -169,6 +170,7 @@ class RAGSystem:
             return answer.get('text', str(answer))
         except Exception as e:
             return f"Error during LLM query: {e}"
+
 
     def delete_document(self, document_id: int):
         """

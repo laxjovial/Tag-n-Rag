@@ -25,7 +25,9 @@ This project is a sophisticated, standalone Retrieval-Augmented Generation (RAG)
     *   **User Authentication:** Secure user registration and login system.
     *   **Personal Analytics:** A dedicated dashboard for users to view their own usage statistics.
     *   **Admin Dashboard:** A secure, admin-only interface for managing users, viewing system configurations, and monitoring global query history and analytics.
+
     *   **Configurable Storage Quotas:** A universal storage limit for all users can be easily configured via environment variables to ensure fair usage.
+
 
 ## Technology Stack
 

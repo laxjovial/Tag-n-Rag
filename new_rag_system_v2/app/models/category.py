@@ -22,4 +22,6 @@ class Category(Base):
         secondary=document_category_association,
         back_populates="categories"
     )
+
     gdrive_mapping = relationship("GoogleDriveFolderMapping", back_populates="category", uselist=False, cascade="all, delete-orphan")
+
