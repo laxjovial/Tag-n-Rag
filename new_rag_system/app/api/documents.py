@@ -11,7 +11,7 @@ import uuid
 import io
 from .. import schemas
 from ..database import get_db
-from ..models import Document, User, Setting, Category, document_category_association # Import document_category_association
+from ..models import Document, User, Setting, Category, document_category_association, QueryLog
 from ..rag import RAGSystem
 from .auth import get_current_active_user
 from ..utils import read_file_content
@@ -304,3 +304,60 @@ def export_document(
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
+@router.post("/{document_id}/append", response_model=schemas.DocumentOut)
+def append_to_document(
+    document_id: int,
+    append_data: schemas.DocumentAppend,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """
+    Appends a formatted query result to an existing document.
+    """
+    # 1. Verify ownership of the target document
+    document = db.query(Document).filter(Document.id == document_id, Document.owner_id == current_user.id).first()
+    if not document:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
+
+    # 2. Verify ownership of the source query
+    query_log = db.query(QueryLog).filter(QueryLog.id == append_data.query_id, QueryLog.user_id == current_user.id).first()
+    if not query_log:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Query log not found")
+
+    # 3. Download the existing document content
+    try:
+        original_content = storage_service.download(document.filename).decode('utf-8')
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not retrieve original document: {e}")
+
+    # 4. Format the new content
+    query_content = f"Question: {query_log.query_text}\n\nAnswer: {query_log.answer_text}"
+    formatted_append_text = ""
+    if append_data.formatting_method == 'simple':
+        formatted_append_text = f"\n\n---\n\n{query_content}"
+    elif append_data.formatting_method == 'informative':
+        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
+        formatted_append_text = f"\n\n--- Appended on {timestamp} ---\n\n{query_content}"
+    elif append_data.formatting_method == 'structured':
+        timestamp = datetime.utcnow().strftime('%Y-%m-%d')
+        formatted_append_text = f"\n\n## Query Result\n**Date:** {timestamp}\n**Question:** {query_log.query_text}\n\n**Answer:**\n{query_log.answer_text}"
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid formatting method")
+
+    # 5. Combine and upload the new content
+    new_content = original_content + formatted_append_text
+    new_unique_filename = f"{uuid.uuid4()}.{document.filename.split('.')[-1]}"
+
+    try:
+        storage_service.upload(new_unique_filename, new_content.encode('utf-8'))
+
+        # 6. Update document metadata (new version, new filename)
+        document.filename = new_unique_filename
+        document.version += 1
+        db.commit()
+        db.refresh(document)
+
+        return document
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to append to document: {e}")
