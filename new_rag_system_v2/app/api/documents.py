@@ -46,7 +46,7 @@ def upload_documents(
     uploaded_docs = []
     for file in files:
         file_content_bytes = file.file.read()
-        file.file.seek(0) # Reset file pointer
+        file.file.seek(0)
         file_size = len(file_content_bytes)
 
         unique_filename = f"{uuid.uuid4()}.{file.filename.split('.')[-1]}"
@@ -87,9 +87,39 @@ def upload_documents(
 
     return uploaded_docs
 
-# (The rest of the file remains the same, so I'm omitting it for brevity)
-# ...
-# I will now update the delete_document function in a separate step.
+@router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_document(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """
+    Deletes a document from storage, its database entry, and updates user storage usage.
+    """
+    document = db.query(Document).filter(
+        Document.id == document_id,
+        Document.owner_id == current_user.id
+    ).first()
+
+    if not document:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found or not owned by user")
+
+    document_size = document.size
+
+    try:
+        storage_service.delete(document.filename)
+    except Exception as e:
+        print(f"Warning: Failed to delete file {document.filename} from storage: {e}")
+
+    db.delete(document)
+    current_user.storage_used -= document_size
+    if current_user.storage_used < 0:
+        current_user.storage_used = 0
+
+    db.commit()
+    return None
+
+# (The rest of the file is unchanged and omitted for brevity)
 # ...
 @router.get("/", response_model=List[schemas.DocumentOut])
 def list_user_documents(
@@ -146,38 +176,6 @@ def get_document_content(
         return StreamingResponse(io.BytesIO(content_bytes), media_type="text/plain")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to retrieve document content: {e}")
-
-@router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_document(
-    document_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
-):
-    """
-    Deletes a document from storage, its database entry, and updates user storage usage.
-    """
-    document = db.query(Document).filter(
-        Document.id == document_id,
-        Document.owner_id == current_user.id
-    ).first()
-
-    if not document:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found or not owned by user")
-
-    document_size = document.size
-
-    try:
-        storage_service.delete(document.filename)
-    except Exception as e:
-        print(f"Warning: Failed to delete file {document.filename} from storage: {e}")
-
-    db.delete(document)
-    current_user.storage_used -= document_size
-    if current_user.storage_used < 0:
-        current_user.storage_used = 0 # Prevent negative storage
-
-    db.commit()
-    return None
 
 @router.put("/{document_id}", response_model=schemas.DocumentOut)
 def update_document_content(

@@ -17,18 +17,11 @@ def get_auth_headers():
     token = st.session_state.get("token")
     return {"Authorization": f"Bearer {token}"}
 
-
 @st.cache_data(ttl=60)
 def get_my_analytics():
-
-@st.cache_data(ttl=300)
-def get_my_analytics():
-    """Fetches personal analytics for the current user."""
-
     response = requests.get(f"{API_BASE_URL}/history/analytics", headers=get_auth_headers())
     response.raise_for_status()
     return response.json()
-
 
 @st.cache_data(ttl=60)
 def get_user_profile():
@@ -48,14 +41,12 @@ def format_bytes(size_bytes):
         n += 1
     return f"{size_bytes:.2f} {power_labels[n]}B"
 
-
 # --- UI Rendering ---
 st.title("My Personal Analytics")
 
 try:
     with st.spinner("Loading your analytics..."):
         analytics_data = get_my_analytics()
-
         user_profile = get_user_profile()
 
     st.header("Storage Usage")
@@ -83,32 +74,12 @@ try:
         col1.metric(label="Total Queries Made", value=analytics_data.get("total_queries", 0))
         col2.metric(label="Most Queried Documents", value=len(analytics_data.get("top_documents", [])))
 
-
-
-    if not analytics_data or analytics_data["total_queries"] == 0:
-        st.info("You don't have any usage data to analyze yet. Start by asking some questions!")
-    else:
-        # --- Key Metrics ---
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric(label="Total Queries Made", value=analytics_data.get("total_queries", 0))
-        with col2:
-            st.metric(label="Most Queried Documents", value=len(analytics_data.get("top_documents", [])))
-
-        st.divider()
-
-        # --- Queries Per Day Chart ---
-
         queries_per_day = analytics_data.get("queries_per_day")
         if queries_per_day:
             st.subheader("Your Query Activity")
             df_queries = pd.DataFrame(queries_per_day)
             df_queries['date'] = pd.to_datetime(df_queries['date'])
             st.bar_chart(df_queries.set_index('date')['queries'], use_container_width=True)
-
-
-
-        # --- Top Queried Documents ---
 
         top_docs = analytics_data.get("top_documents")
         if top_docs:

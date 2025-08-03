@@ -12,6 +12,7 @@ class UserCreate(UserBase):
 class UserOut(UserBase):
     id: int
     role: str
+    has_google_credentials: bool = False
     storage_used: int # In bytes
     storage_limit: int # In bytes
 
@@ -80,6 +81,9 @@ class DocumentUpdate(BaseModel):
 class DocumentAppend(BaseModel):
     query_id: int
     formatting_method: str # e.g., 'simple', 'informative', 'structured'
+
+class GoogleDriveIngestRequest(BaseModel):
+    file_ids: List[str]
 
 class DocumentCreateFromText(BaseModel):
     filename: str

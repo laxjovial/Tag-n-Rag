@@ -12,6 +12,7 @@ router = APIRouter()
 @router.get("/me", response_model=schemas.UserOut)
 def read_users_me(current_user: User = Depends(get_current_active_user)):
     user_data = schemas.UserOut.from_orm(current_user)
+    user_data.has_google_credentials = current_user.google_credentials is not None
 
     # Get storage limit from environment variable
     limit_mb = int(os.environ.get("USER_STORAGE_LIMIT_MB", 1024))
