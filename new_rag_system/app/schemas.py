@@ -27,6 +27,22 @@ class CategoryOut(CategoryBase):
 
     model_config = ConfigDict(from_attributes=True) # Updated
 
+# --- Analytics Schemas ---
+from typing import List
+
+class QueriesPerDay(BaseModel):
+    date: str
+    queries: int
+
+class TopDocument(BaseModel):
+    document_id: int
+    count: int
+
+class UserAnalytics(BaseModel):
+    total_queries: int
+    queries_per_day: List[QueriesPerDay]
+    top_documents: List[TopDocument]
+
 # --- Notification Schemas ---
 class NotificationOut(BaseModel):
     id: int

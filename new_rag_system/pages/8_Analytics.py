@@ -1,38 +1,64 @@
 import streamlit as st
 import pandas as pd
 import requests
+from app.utils import check_auth
 
-st.set_page_config(page_title="Usage Analytics", layout="wide")
+# --- Authentication Check ---
+check_auth("My Analytics")
 
-API_BASE_URL = "http://localhost:8000"
+# --- Page Configuration ---
+st.set_page_config(page_title="My Analytics", layout="wide")
 
-def get_queries_per_day(token):
-    headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(f"{API_BASE_URL}/admin/analytics/queries_per_day", headers=headers)
+# --- API Configuration ---
+API_BASE_URL = "http://127.0.0.1:8000"
+
+# --- Helper Functions ---
+def get_auth_headers():
+    token = st.session_state.get("token")
+    return {"Authorization": f"Bearer {token}"}
+
+@st.cache_data(ttl=300)
+def get_my_analytics():
+    """Fetches personal analytics for the current user."""
+    response = requests.get(f"{API_BASE_URL}/history/analytics", headers=get_auth_headers())
     response.raise_for_status()
     return response.json()
 
-st.title("Usage Analytics Dashboard")
+# --- UI Rendering ---
+st.title("My Personal Analytics")
 
-if 'token' not in st.session_state or st.session_state.token is None:
-    st.warning("Please log in to view this page.")
-else:
-    # In a real app, we'd also check the user's role from the token or another API call
-    st.write("Welcome, Admin!")
+try:
+    with st.spinner("Loading your analytics..."):
+        analytics_data = get_my_analytics()
 
-    try:
-        with st.spinner("Loading analytics data..."):
-            data = get_queries_per_day(st.session_state.token)
+    if not analytics_data or analytics_data["total_queries"] == 0:
+        st.info("You don't have any usage data to analyze yet. Start by asking some questions!")
+    else:
+        # --- Key Metrics ---
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric(label="Total Queries Made", value=analytics_data.get("total_queries", 0))
+        with col2:
+            st.metric(label="Most Queried Documents", value=len(analytics_data.get("top_documents", [])))
 
-        if data:
-            st.header("Queries Per Day")
-            df = pd.DataFrame(data)
-            df['date'] = pd.to_datetime(df['date'])
-            st.bar_chart(df.set_index('date')['queries'])
-        else:
-            st.info("No query data available yet.")
+        st.divider()
 
-    except requests.exceptions.RequestException as e:
-        st.error(f"Failed to load analytics data: {e}")
-    except Exception as e:
-        st.error(f"An unexpected error occurred: {e}")
+        # --- Queries Per Day Chart ---
+        queries_per_day = analytics_data.get("queries_per_day")
+        if queries_per_day:
+            st.subheader("Your Query Activity")
+            df_queries = pd.DataFrame(queries_per_day)
+            df_queries['date'] = pd.to_datetime(df_queries['date'])
+            st.bar_chart(df_queries.set_index('date')['queries'], use_container_width=True)
+
+        # --- Top Queried Documents ---
+        top_docs = analytics_data.get("top_documents")
+        if top_docs:
+            st.subheader("Your Most Frequently Queried Documents")
+            df_docs = pd.DataFrame(top_docs)
+            st.dataframe(df_docs, use_container_width=True)
+
+except requests.exceptions.RequestException as e:
+    st.error(f"Failed to load your analytics: {e}")
+except Exception as e:
+    st.error(f"An unexpected error occurred: {e}")
