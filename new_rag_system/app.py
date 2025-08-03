@@ -13,57 +13,92 @@ def apply_theme(theme):
         st._config.set_option('theme.base', 'light')
 
 def login(username, password):
+    """Handles the login process, including API call and session state update."""
     try:
         response = requests.post(f"{API_BASE_URL}/auth/login", data={"username": username, "password": password})
-        response.raise_for_status() # This will raise an HTTPError for bad responses (4xx or 5xx)
+        response.raise_for_status()
         token = response.json()["access_token"]
 
-        # Fetch user profile to get theme
         headers = {"Authorization": f"Bearer {token}"}
         user_profile_response = requests.get(f"{API_BASE_URL}/user/me", headers=headers)
-        user_profile_response.raise_for_status() # Raise for errors on user profile fetch
+        user_profile_response.raise_for_status()
         user_profile = user_profile_response.json()
 
-        return token, user_profile.get("theme", "light")
+        # Set session state upon successful login
+        st.session_state.token = token
+        st.session_state.theme = user_profile.get("theme", "light")
+        st.session_state.role = user_profile.get("role", "user")
+        st.session_state.username = user_profile.get("username")
+        return True
     except requests.exceptions.RequestException as e:
-        st.error(f"Login failed: {e}")
+        error_message = "Login failed."
         if e.response is not None:
             try:
-                error_detail = e.response.json().get('detail', 'No detail provided.')
-                st.error(f"Server response: {error_detail}")
+                error_detail = e.response.json().get('detail')
+                if error_detail:
+                    error_message = f"Login failed: {error_detail}"
             except requests.exceptions.JSONDecodeError:
-                st.error(f"Server returned non-JSON response: {e.response.text}")
-        return None, None
+                error_message = "Login failed: Server returned an invalid response."
+        st.error(error_message)
+        return False
 
 def register(username, password):
+    """Handles the registration process."""
     try:
         response = requests.post(f"{API_BASE_URL}/auth/register", json={"username": username, "password": password})
-        response.raise_for_status() # This will raise an HTTPError for bad responses (4xx or 5xx)
+        response.raise_for_status()
         st.success("Registration successful! You can now log in.")
         return True
     except requests.exceptions.RequestException as e:
-        st.error(f"Registration failed: {e}")
+        error_message = "Registration failed."
         if e.response is not None:
             try:
-                error_detail = e.response.json().get('detail', 'No detail provided.')
-                st.error(f"Server response: {error_detail}")
+                error_detail = e.response.json().get('detail')
+                if error_detail:
+                    error_message = f"Registration failed: {error_detail}"
             except requests.exceptions.JSONDecodeError:
-                st.error(f"Server returned non-JSON response: {e.response.text}")
+                error_message = "Registration failed: Server returned an invalid response."
+        st.error(error_message)
         return False
+
+def render_sidebar():
+    """Renders the sidebar navigation based on user role."""
+    st.sidebar.success(f"Logged in as **{st.session_state.username}**")
+    if st.sidebar.button("Logout"):
+        st.session_state.clear()
+        st.rerun()
+
+    st.sidebar.header("Navigation")
+    # Use st.page_link for modern Streamlit navigation
+    st.page_link("pages/0_Dashboard.py", label="Dashboard")
+    st.page_link("pages/1_Upload.py", label="Upload Documents")
+    st.page_link("pages/10_Create_from_Text.py", label="Create from Text")
+    st.page_link("pages/2_View_Documents.py", label="View Documents")
+    st.page_link("pages/3_Query.py", label="Query Documents")
+    st.page_link("pages/4_History.py", label="Query History")
+    st.page_link("pages/8_Analytics.py", label="My Analytics")
+    st.page_link("pages/9_Export.py", label="Export Data")
+
+    # Conditionally render Admin link
+    if st.session_state.get("role") == "admin":
+        st.sidebar.divider()
+        st.sidebar.header("Admin")
+        st.page_link("pages/5_Admin.py", label="Admin Dashboard")
+
+    st.sidebar.divider()
+    st.page_link("pages/6_Legal.py", label="Legal & Policies")
+
 
 # --- Main App ---
 st.set_page_config(page_title="RAG System", layout="wide")
 
-# Apply theme if user is logged in
-if 'theme' in st.session_state:
-    apply_theme(st.session_state.theme)
-
-st.title("Welcome to the Advanced RAG System")
-
+# Initialize session state
 if 'token' not in st.session_state:
     st.session_state.token = None
 
+# Main logic to display login/register or the app
 if st.session_state.token is None:
+    st.title("Welcome to the Advanced RAG System")
     login_tab, register_tab = st.tabs(["Login", "Register"])
     with login_tab:
         with st.form("login_form"):
@@ -71,12 +106,8 @@ if st.session_state.token is None:
             password = st.text_input("Password", type="password")
             submitted = st.form_submit_button("Login")
             if submitted:
-                token, theme = login(username, password)
-                if token:
-                    st.session_state.token = token
-                    st.session_state.theme = theme
-                    st.rerun()
-                # else:  The error message is now handled inside the login function
+                if login(username, password):
+                    st.rerun() # Rerun to apply login state
     with register_tab:
         with st.form("register_form"):
             reg_username = st.text_input("Choose a Username")
@@ -84,16 +115,17 @@ if st.session_state.token is None:
             agree = st.checkbox("I agree to the Terms of Service and Privacy Policy.")
             if st.form_submit_button("Register"):
                 if agree:
-                    register(reg_username, reg_password)
+                    if register(reg_username, reg_password):
+                        st.info("Please log in with your new credentials.")
                 else:
                     st.warning("You must agree to the terms to register.")
 else:
-    st.sidebar.success("You are logged in!")
-    if st.sidebar.button("Logout"):
-        st.session_state.clear()
-        st.rerun()
+    # Apply theme now that we know the user is logged in
+    if 'theme' in st.session_state:
+        apply_theme(st.session_state.theme)
 
-# --- Footer ---
-st.markdown("---")
-# Removed 'query_params' as it's not supported in all Streamlit versions for st.page_link
-st.page_link("pages/6_Legal.py", label="Legal & Policies")
+    # Render the main app view
+    render_sidebar()
+    # You can have a main dashboard here or just direct users to the sidebar
+    st.title("Dashboard")
+    st.write("Select a page from the sidebar to get started.")
