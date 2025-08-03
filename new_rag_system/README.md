@@ -2,27 +2,30 @@
 
 ## Overview
 
-This project is a sophisticated, standalone Retrieval-Augmented Generation (RAG) system designed to provide intelligent answers from a collection of documents. It features a FastAPI backend for robust API services and a Streamlit frontend for an interactive user experience. The system allows users to upload, manage, and query documents with advanced features like versioning, expiration, and configurable AI models.
+This project is a sophisticated, standalone Retrieval-Augmented Generation (RAG) system designed to provide intelligent answers from a collection of documents. It features a FastAPI backend for robust API services and a Streamlit frontend for an interactive user experience. The system is built with a strong emphasis on security, featuring a clear distinction between user and administrator roles. Users can upload, manage, and query their own documents, while administrators have access to system-wide monitoring and configuration tools.
 
 ## Key Features
 
+*   **Secure, Multi-Tenant Design:**
+    *   **Role-Based Access Control:** A clear separation between `user` and `admin` roles. Users only have access to their own data and features.
+    *   **Personal Data Isolation:** All user-generated content, including documents, query history, and categories, is strictly isolated to the owning user.
 *   **Flexible Document Creation:**
     *   **File Upload:** Upload multiple documents at once (PDF, DOCX, TXT).
     *   **Create from Text:** Paste or type raw text and save it as a new document.
-    *   **Save Query Results:** Save the results of your queries as new, searchable documents.
 *   **Advanced Document Management:**
     *   **Cloud Storage:** All documents are securely stored in Google Cloud Storage.
-    *   **Categorization:** Organize all documents into custom categories.
+    *   **Personal Categorization:** Organize documents into personal, user-defined categories.
     *   **Editing & Exporting:** Edit any document's content and export it to PDF, DOCX, or TXT at any time.
-    *   **Expiration Policies:** Set custom or default expiration dates for documents, with automatic notifications.
+    *   **Expiration Policies:** Set custom or default expiration dates for documents.
 *   **Intelligent Querying:**
     *   **Flexible Querying:** Query individual documents, multiple documents, or entire categories at once.
-    *   **Query History:** Access a complete history of all past queries.
+    *   **Personal Query History:** Access a complete, private history of all past queries.
     *   **Configurable Generation:** Choose between different Large Language Models (LLMs) or external APIs for answer generation.
-*   **User and Admin Controls:**
+*   **User and Admin Dashboards:**
     *   **User Authentication:** Secure user registration and login system.
-    *   **LLM Controls:** Adjust LLM temperature and select models directly from the UI.
-    *   **Admin Dashboard:** A dedicated interface for administrators to manage users, system configurations, and view global query history.
+    *   **Personal Analytics:** A dedicated dashboard for users to view their own usage statistics.
+    *   **Admin Dashboard:** A secure, admin-only interface for managing users, viewing system configurations, and monitoring global query history and analytics.
+    *   **Configurable Storage Quotas:** A universal storage limit for all users can be easily configured via environment variables to ensure fair usage.
 
 ## Technology Stack
 

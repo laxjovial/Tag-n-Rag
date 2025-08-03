@@ -12,8 +12,10 @@ class UserCreate(UserBase):
 class UserOut(UserBase):
     id: int
     role: str
+    storage_used: int # In bytes
+    storage_limit: int # In bytes
 
-    model_config = ConfigDict(from_attributes=True) # Updated
+    model_config = ConfigDict(from_attributes=True)
 
 # --- Category Schemas ---
 class CategoryBase(BaseModel):
@@ -26,6 +28,22 @@ class CategoryOut(CategoryBase):
     id: int
 
     model_config = ConfigDict(from_attributes=True) # Updated
+
+# --- Analytics Schemas ---
+from typing import List
+
+class QueriesPerDay(BaseModel):
+    date: str
+    queries: int
+
+class TopDocument(BaseModel):
+    document_id: int
+    count: int
+
+class UserAnalytics(BaseModel):
+    total_queries: int
+    queries_per_day: List[QueriesPerDay]
+    top_documents: List[TopDocument]
 
 # --- Notification Schemas ---
 class NotificationOut(BaseModel):
@@ -58,6 +76,10 @@ class DocumentOut(BaseModel):
 
 class DocumentUpdate(BaseModel):
     content: str
+
+class DocumentAppend(BaseModel):
+    query_id: int
+    formatting_method: str # e.g., 'simple', 'informative', 'structured'
 
 class DocumentCreateFromText(BaseModel):
     filename: str
