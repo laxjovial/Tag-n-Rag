@@ -64,8 +64,13 @@ The **Query History** page shows a complete log of all the questions you've aske
 
 ### 5.2. My Analytics
 The **My Analytics** page provides a dashboard of your personal activity, including:
+
+*   **Storage Usage:** A progress bar showing how much of your storage quota you have used.
+*   **Query Usage:** Your total number of queries, a chart of your activity over time, and a list of your most frequently queried documents.
+
 *   Your total number of queries.
 *   A chart of your query activity over time.
 *   A list of your most frequently queried documents.
+
 
 If you have any questions, don't hesitate to reach out to your system administrator. Happy querying!

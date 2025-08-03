@@ -19,11 +19,12 @@ def get_auth_headers():
 
 @st.cache_data(ttl=60)
 def get_user_documents(search_query=""):
-<<<feature/secure-app-and-features
-=======
+
+
 
 
     """Fetches documents for the current user, with an optional search query."""
+
 
 
     params = {"search": search_query} if search_query else {}
@@ -32,6 +33,8 @@ def get_user_documents(search_query=""):
     return response.json()
 
 def delete_document(doc_id: int):
+
+
 
 
 
@@ -50,6 +53,63 @@ def export_document(doc_id: int, file_format: str):
     return response.content
 
 # --- UI Rendering ---
+
+st.title("View and Manage Your Documents")
+
+search_term = st.text_input("Search by filename", key="doc_search")
+
+try:
+    with st.spinner("Loading your documents..."):
+        documents_data = get_user_documents(search_term)
+
+    if not documents_data:
+        st.info("You haven't uploaded any documents yet, or no documents match your search.")
+    else:
+        for doc in documents_data:
+            with st.container(border=True):
+                col1, col2, col3 = st.columns([4, 1, 1])
+                with col1:
+                    st.subheader(doc['original_filename'])
+                    st.caption(f"Version: {doc['version']} | Created: {pd.to_datetime(doc['created_at']).strftime('%Y-%m-%d %H:%M')}")
+                with col2:
+                    st.page_link("pages/7_Edit_Document.py", label="Edit", icon="✏️", query_params={"doc_id": doc['id']})
+                with col3:
+                    if st.button("Delete", key=f"delete_{doc['id']}", type="primary"):
+                        try:
+                            delete_document(doc['id'])
+                            st.success(f"Document '{doc['original_filename']}' deleted.")
+                            st.rerun()
+                        except requests.exceptions.RequestException as e:
+                            st.error(f"Failed to delete document: {e}")
+
+                # Export buttons
+                with st.expander("Export Document"):
+                    b_col1, b_col2, b_col3 = st.columns(3)
+                    with b_col1:
+                        st.download_button(
+                            label="as PDF",
+                            data=export_document(doc['id'], "pdf"),
+                            file_name=f"{doc['original_filename']}.pdf",
+                            mime="application/pdf",
+                            key=f"pdf_{doc['id']}"
+                        )
+                    with b_col2:
+                        st.download_button(
+                            label="as DOCX",
+                            data=export_document(doc['id'], "docx"),
+                            file_name=f"{doc['original_filename']}.docx",
+                            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                            key=f"docx_{doc['id']}"
+                        )
+                    with b_col3:
+                        st.download_button(
+                            label="as TXT",
+                            data=export_document(doc['id'], "txt"),
+                            file_name=f"{doc['original_filename']}.txt",
+                            mime="text/plain",
+                            key=f"txt_{doc['id']}"
+                        )
+
 st.title("View and Manage Your Documents")
 
 search_term = st.text_input("Search by filename", key="doc_search")
@@ -201,6 +261,7 @@ try:
                             mime="text/plain",
                             key=f"txt_{doc['id']}"
                         )
+
 
 
 

@@ -21,7 +21,11 @@ The admin dashboard is organized into four tabs, each providing a different view
 
 ### 3.1. User Management
 
+
+This tab provides a read-only view of all users registered in the system. You can see a list of all users, their assigned roles (`user` or `admin`), and their current storage usage. This usage includes both files they've uploaded directly and files they have ingested from Google Drive. This is useful for monitoring who has access to the system and how much storage each user is consuming.
+
 This tab provides a read-only view of all users registered in the system. You can see a list of all users, their assigned roles (`user` or `admin`), and their user ID. This is useful for monitoring who has access to the system.
+
 
 *(Note: User creation, deletion, and role modification must currently be handled directly in the database.)*
 

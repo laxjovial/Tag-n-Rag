@@ -31,6 +31,8 @@ def get_llm_configs():
     response = requests.get(f"{API_BASE_URL}/admin/llm_configs/", headers=get_auth_headers())
     response.raise_for_status()
     return response.json()
+
+
 <urapp-and-feature
 
 @st.cache_data(ttl=300)
@@ -71,6 +73,7 @@ def format_bytes(size_bytes):
 
 
 
+
 @st.cache_data(ttl=300)
 def get_global_history():
     """Fetches global query history from the API."""
@@ -96,6 +99,19 @@ tab1, tab2, tab3, tab4 = st.tabs([
 ])
 
 
+def format_bytes(size_bytes):
+    """Converts bytes to a human-readable format."""
+    if size_bytes == 0:
+        return "0 B"
+    power = 1024
+    n = 0
+    power_labels = {0: '', 1: 'K', 2: 'M', 3: 'G', 4: 'T'}
+    while size_bytes > power and n < len(power_labels) -1 :
+        size_bytes /= power
+        n += 1
+    return f"{size_bytes:.2f} {power_labels[n]}B"
+
+
 # --- User Management Tab ---
 with tab1:
     st.header("Manage Users")
@@ -105,6 +121,8 @@ with tab1:
 
         if users_data:
             df = pd.DataFrame(users_data)
+
+
 
             # Format storage usage for display
             df['storage_used_hr'] = df['storage_used'].apply(format_bytes)
@@ -116,6 +134,15 @@ with tab1:
                 "storage_limit_hr": "Storage Limit"
             })
 
+            st.dataframe(df_display, use_container_width=True)
+        else:
+            st.info("No users found.")
+
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to load users: {e}")
+
+
+
             df_display = df[["id", "username", "role", "theme"]]
 
             st.dataframe(df_display, use_container_width=True)
@@ -125,6 +152,7 @@ with tab1:
     except requests.exceptions.RequestException as e:
         st.error(f"Failed to load users: {e}")
 
+
 # --- LLM/API Configs Tab ---
 with tab2:
     st.header("Manage LLM and API Configurations")
@@ -132,11 +160,21 @@ with tab2:
         with st.spinner("Loading configurations..."):
             configs_data = get_llm_configs()
 
+
         if configs_data:
             df = pd.DataFrame(configs_data)
             st.dataframe(df, use_container_width=True)
         else:
             st.info("No configurations found.")
+
+
+
+        if configs_data:
+            df = pd.DataFrame(configs_data)
+            st.dataframe(df, use_container_width=True)
+        else:
+            st.info("No configurations found.")
+
 
     except requests.exceptions.RequestException as e:
         st.error(f"Failed to load configurations: {e}")

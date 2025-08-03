@@ -129,6 +129,49 @@ class RAGSystem:
         except Exception as e:
             return f"Error during LLM query: {e}"
 
+
+    def query_on_the_fly(self, question: str, content: str, llm_config: dict) -> str:
+        """
+        Performs a RAG query on raw text content without persistent storage.
+        """
+        if not content:
+            return "The provided content is empty."
+
+        # 1. Split the text into chunks
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        chunks = text_splitter.split_text(content)
+
+        # 2. Create a temporary, in-memory vector store for this query
+        # We can use ChromaDB's ephemeral client for this
+        ephemeral_client = chromadb.EphemeralClient()
+        ephemeral_collection = ephemeral_client.create_collection(name="temp_on_the_fly")
+
+        ephemeral_collection.add(
+            ids=[f"chunk_{i}" for i, _ in enumerate(chunks)],
+            documents=chunks
+        )
+
+        # 3. Query this temporary collection
+        results = ephemeral_collection.query(
+            query_texts=[question],
+            n_results=5
+        )
+
+        retrieved_docs = results['documents'][0]
+        if not retrieved_docs:
+            return "I could not find any relevant information in the provided content."
+
+        context = "\n\n---\n\n".join(retrieved_docs)
+
+        # 4. Get answer from LLM
+        try:
+            llm_chain = self._get_llm_chain(llm_config)
+            answer = llm_chain.invoke({"context": context, "question": question})
+            return answer.get('text', str(answer))
+        except Exception as e:
+            return f"Error during LLM query: {e}"
+
+
     def delete_document(self, document_id: int):
         """
         Deletes all chunks associated with a document from the vector store.

@@ -7,9 +7,16 @@ import io
 
 from .. import schemas
 from ..database import get_db
+
+from ..models import QueryLog, User, Document, Category, LLMConfig, GoogleDriveFolderMapping
+from ..services.export import ExportService
+from ..services.storage import CloudStorageService
+from ..services.google_drive import GoogleDriveService
+
 from ..models import QueryLog, User, Document, Category, LLMConfig # Ensure LLMConfig is imported
 from ..services.export import ExportService
 from ..services.storage import CloudStorageService
+
 from ..rag import RAGSystem
 from .auth import get_current_active_user
 
@@ -26,6 +33,68 @@ def query_documents(
 ):
     """
     Processes a user query against selected documents or categories using an LLM.
+
+    Handles both uploaded documents and read-on-the-fly from Google Drive.
+    """
+    llm_config_db = db.query(LLMConfig).filter(LLMConfig.id == query_input.llm_config_id).first() or \
+                    db.query(LLMConfig).filter(LLMConfig.is_default == True).first()
+    if not llm_config_db:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No LLM configuration found.")
+
+    llm_config_for_rag = { "name": llm_config_db.name, "model_name": llm_config_db.model_name, "api_key_env": llm_config_db.api_key_env }
+
+    answer = ""
+    queried_doc_ids = []
+
+    if query_input.category_id:
+        category = db.query(Category).filter(Category.id == query_input.category_id, Category.user_id == current_user.id).first()
+        if not category:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
+
+        # Read-on-the-fly logic
+        if category.gdrive_mapping:
+            if not current_user.google_credentials:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Google account not connected.")
+
+            gdrive_service = GoogleDriveService(current_user.google_credentials)
+            drive_files = gdrive_service.list_files(folder_id=category.gdrive_mapping.folder_id)
+
+            combined_content = ""
+            for file in drive_files:
+                if file['mimeType'] != 'application/vnd.google-apps.folder':
+                    content_buffer = gdrive_service.download_file(file['id'])
+                    combined_content += content_buffer.getvalue().decode('utf-8') + "\n\n"
+
+            if not combined_content:
+                answer = "No queryable files found in the mapped Google Drive folder."
+            else:
+                answer = rag_system.query_on_the_fly(question=query_input.question, content=combined_content, llm_config=llm_config_for_rag)
+
+        # Standard logic for uploaded documents in a category
+        else:
+            doc_ids_to_query = [doc.id for doc in category.documents]
+            if not doc_ids_to_query:
+                 answer = "No documents found in this category."
+            else:
+                answer = rag_system.query(question=query_input.question, document_ids=doc_ids_to_query, llm_config=llm_config_for_rag)
+                queried_doc_ids = doc_ids_to_query
+
+    elif query_input.document_ids:
+        # Validate ownership of all requested documents
+        valid_docs = db.query(Document).filter(Document.id.in_(query_input.document_ids), Document.owner_id == current_user.id).all()
+        if len(valid_docs) != len(query_input.document_ids):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied to one or more documents.")
+
+        doc_ids_to_query = [doc.id for doc in valid_docs]
+        answer = rag_system.query(question=query_input.question, document_ids=doc_ids_to_query, llm_config=llm_config_for_rag)
+        queried_doc_ids = doc_ids_to_query
+
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Either category_id or document_ids must be provided.")
+
+    # Log the query
+    db_query_log = QueryLog(user_id=current_user.id, query_text=query_input.question, answer_text=answer, queried_documents={"ids": queried_doc_ids})
+
     Logs the query and its answer.
     """
     doc_ids_to_query = []
@@ -86,11 +155,16 @@ def query_documents(
         answer_text=answer,
         queried_documents={"ids": doc_ids_to_query} # Store queried document IDs
     )
+
     db.add(db_query_log)
     db.commit()
     db.refresh(db_query_log)
 
     return schemas.QueryOutput(answer=answer, query_id=db_query_log.id)
+
+
+# (The rest of the file remains the same)
+# ...
 
 @router.post("/{query_id}/save_as_document", response_model=schemas.DocumentOut)
 def save_query_as_document(
