@@ -6,27 +6,15 @@ from sqlalchemy import func # For analytics functions
 from .. import schemas
 from ..database import get_db
 from ..models import User, LLMConfig, QueryLog
-from .auth import get_current_active_user # Import get_current_active_user
+from .auth import get_current_active_user, get_current_admin_user
 
 router = APIRouter()
 
-# --- Dependency for Admin Users ---
-def get_current_admin_user(current_user: User = Depends(get_current_active_user)):
-    """
-    Dependency to ensure the current authenticated user has an 'admin' role.
-    """
-    if current_user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="The user does not have enough privileges",
-        )
-    return current_user
-
 # --- Publicly Accessible (Authenticated) LLM Config Endpoint ---
-@router.get("/llm_configs/", response_model=List[schemas.LLMConfig])
-def get_all_llm_configs(db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+@router.get("/llm_configs/", response_model=List[schemas.LLMConfig], dependencies=[Depends(get_current_admin_user)])
+def get_all_llm_configs(db: Session = Depends(get_db)):
     """
-    Get all LLM and API configurations. Accessible by any authenticated user.
+    Get all LLM and API configurations. (Admin only)
     """
     return db.query(LLMConfig).all()
 

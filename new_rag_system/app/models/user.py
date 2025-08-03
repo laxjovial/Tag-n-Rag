@@ -13,3 +13,4 @@ class User(Base):
 
     documents = relationship("Document", back_populates="owner")
     queries = relationship("QueryLog", back_populates="user")
+    categories = relationship("Category", back_populates="owner", cascade="all, delete-orphan")
