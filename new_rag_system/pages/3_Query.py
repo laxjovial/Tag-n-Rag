@@ -51,6 +51,13 @@ def save_query_as_document(query_id: int, filename: str):
     response.raise_for_status()
     return response.json()
 
+def append_to_document(doc_id: int, query_id: int, formatting_method: str):
+    headers = get_auth_headers()
+    payload = {"query_id": query_id, "formatting_method": formatting_method}
+    response = requests.post(f"{API_BASE_URL}/documents/{doc_id}/append", json=payload, headers=headers)
+    response.raise_for_status()
+    return response.json()
+
 # --- Main App ---
 st.title("Query Your Documents")
 
@@ -108,22 +115,46 @@ try:
         st.subheader("Answer")
         st.markdown(st.session_state.last_answer)
 
-        with st.expander("Save this result as a new document"):
-            with st.form("save_as_doc_form"):
-                new_filename = st.text_input("Enter a filename for the new document")
-                submitted = st.form_submit_button("Save")
-                if submitted:
-                    if not new_filename:
-                        st.error("Filename cannot be empty.")
-                    else:
-                        try:
-                            with st.spinner("Saving document..."):
-                                save_query_as_document(st.session_state.last_query_id, new_filename)
-                                st.success(f"Result saved as '{new_filename}'!")
-                                # Clear cache for document list to refresh it on other pages
-                                st.cache_data.clear()
-                        except requests.exceptions.RequestException as e:
-                            st.error(f"Failed to save document: {e}")
+        with st.expander("Save or Append this Result"):
+            tab1, tab2 = st.tabs(["Save as New Document", "Append to Existing Document"])
+            with tab1:
+                with st.form("save_as_doc_form"):
+                    new_filename = st.text_input("Enter a filename for the new document")
+                    submitted = st.form_submit_button("Save as New")
+                    if submitted:
+                        if not new_filename:
+                            st.error("Filename cannot be empty.")
+                        else:
+                            try:
+                                with st.spinner("Saving document..."):
+                                    save_query_as_document(st.session_state.last_query_id, new_filename)
+                                    st.success(f"Result saved as '{new_filename}'!")
+                                    st.cache_data.clear()
+                            except requests.exceptions.RequestException as e:
+                                st.error(f"Failed to save document: {e}")
+            with tab2:
+                if not documents:
+                    st.info("You have no documents to append to.")
+                else:
+                    with st.form("append_to_doc_form"):
+                        doc_to_append_name = st.selectbox("Select document to append to", list(doc_map.keys()))
+                        formatting_method = st.radio(
+                            "Choose append format",
+                            [('simple', 'Simple Separator (---)'),
+                             ('informative', 'Informative Timestamp'),
+                             ('structured', 'Structured Block')],
+                            format_func=lambda x: x[1]
+                        )
+                        append_submitted = st.form_submit_button("Append to Document")
+                        if append_submitted:
+                            doc_id = doc_map.get(doc_to_append_name)
+                            try:
+                                with st.spinner("Appending to document..."):
+                                    append_to_document(doc_id, st.session_state.last_query_id, formatting_method[0])
+                                    st.success(f"Successfully appended to '{doc_to_append_name}'!")
+                                    st.cache_data.clear()
+                            except requests.exceptions.RequestException as e:
+                                st.error(f"Failed to append to document: {e}")
 
 except requests.exceptions.RequestException as e:
     st.error(f"An API error occurred: {e}")

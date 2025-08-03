@@ -75,6 +75,10 @@ class DocumentOut(BaseModel):
 class DocumentUpdate(BaseModel):
     content: str
 
+class DocumentAppend(BaseModel):
+    query_id: int
+    formatting_method: str # e.g., 'simple', 'informative', 'structured'
+
 class DocumentCreateFromText(BaseModel):
     filename: str
     content: str
