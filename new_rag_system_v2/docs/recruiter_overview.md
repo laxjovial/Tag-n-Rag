@@ -14,8 +14,12 @@ This project showcases a wide range of skills in modern software engineering, AI
 
 ### 1. Backend Development (Python, FastAPI)
 
-*   **Cloud Service Integration:** Integrated the application with Google Cloud Storage (GCS) for persistent, scalable, and secure document storage.
-*   **Complex Feature Implementation:** Designed and implemented advanced, user-centric features such as document categorization, editable documents, default expiration policies, and a full knowledge creation loop (saving queries as new documents).
+*   **Cloud Service & External API Integration:**
+    *   Integrated the application with Google Cloud Storage (GCS) for persistent, scalable document storage.
+    *   **Google Drive API (V2.0):** Implemented a secure OAuth 2.0 flow and created a dedicated service to interact with the Google Drive API, enabling features like file browsing, ingestion, and "read-on-the-fly" queries.
+*   **Complex Feature Implementation:**
+    *   Designed and implemented advanced, user-centric features such as personal document categorization, editable documents, and a full knowledge creation loop (saving/appending queries to documents).
+    *   **Storage Quotas (V2.0):** Engineered a universal, environment-configurable storage limit system to manage resources, including all necessary database tracking and backend enforcement logic.
 *   **Advanced Database Design:** Designed and implemented a many-to-many relationship in SQLAlchemy to support document categorization.
 *   **Third-Party Library Integration:** Researched and integrated libraries like `reportlab` to build a robust document export service (PDF, DOCX, TXT).
 *   **API Design:** Designed and built a comprehensive RESTful API to handle user authentication, document management, querying, and admin functions.
