@@ -1,6 +1,10 @@
 import streamlit as st
 import requests
+
 from src.frontend.utils import check_auth
+=======
+from app.utils import check_auth
+
 
 # --- Authentication Check ---
 check_auth("Connect Data Source")

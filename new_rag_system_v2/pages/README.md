@@ -13,8 +13,11 @@ The number prefix in the filename (e.g., `0_Dashboard.py`) is used to control th
 -   `5_Admin.py`: The main dashboard for admin-level tasks.
 -   `6_Legal.py`: The page for displaying legal and policy documents.
 -   `7_Edit_Document.py`: The page for editing the content of a document.
+
 -   `8_Analytics.py`: The personal analytics page for the logged-in user.
 -   `9_Export.py`: The page for exporting query results.
 -   `10_Create_from_Text.py`: The page for creating a new document from raw text.
 -   `11_Connect_Data_Source.py`: (V2.0) The page for connecting to Google Drive and ingesting files from it.
 -   `12_Manage_Mappings.py`: (V2.0) The page for managing category-to-folder mappings for the read-on-the-fly feature.
+
+

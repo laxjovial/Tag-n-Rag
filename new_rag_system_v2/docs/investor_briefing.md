@@ -33,10 +33,15 @@ The Advanced RAG (Retrieval-Augmented Generation) System is a turnkey solution t
 *   **Intuitive and User-Friendly:** A clean, simple interface allows any user, regardless of technical skill, to easily upload documents and start asking questions.
 *   **Knowledge Creation Loop:** The system is not just for consumption; it's for creation. Users can save their query results as new, searchable documents, effectively allowing the system to learn and build upon its own insights.
 *   **Universal Export:** Any document, whether uploaded or generated, can be exported to standard formats like PDF, DOCX, and TXT, ensuring data portability and integration with other workflows.
+
 *   **Direct Data Connectivity (V2.0):** Our key differentiator is the ability to connect directly to a user's existing data sources like Google Drive. This allows for two powerful modes:
     1.  **Ingestion:** Users can import documents from their Drive into our managed, high-performance environment.
     2.  **Live Query ("Read-on-the-fly"):** For maximum privacy and convenience, users can query documents directly in their Google Drive without ever uploading them to our servers.
 *   **Resource Management:** The system includes configurable, universal storage quotas to ensure fair and manageable resource consumption in our hosted environment.
+
+
+
+
 
 ---
 

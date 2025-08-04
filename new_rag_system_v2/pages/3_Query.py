@@ -1,7 +1,11 @@
 import streamlit as st
 import requests
 from typing import List, Dict, Optional
+
 from src.frontend.utils import check_auth
+
+from app.utils import check_auth
+
 
 # --- Authentication Check ---
 check_auth("Query Documents")
@@ -17,13 +21,21 @@ def get_auth_headers():
 @st.cache_data(ttl=60)
 def get_user_data() -> Dict:
     headers = get_auth_headers()
+
     # Fetch all data in parallel could be an option here
+
+
+    # Fetch all data in parallel could be an option here
+
+
     docs_response = requests.get(f"{API_BASE_URL}/documents/", headers=headers)
     docs_response.raise_for_status()
     cats_response = requests.get(f"{API_BASE_URL}/categories/", headers=headers)
     cats_response.raise_for_status()
     llm_configs_response = requests.get(f"{API_BASE_URL}/admin/llm_configs/", headers=headers)
     llm_configs_response.raise_for_status()
+
+
     mappings_response = requests.get(f"{API_BASE_URL}/mappings/", headers=headers)
     mappings_response.raise_for_status()
     return {
@@ -35,6 +47,17 @@ def get_user_data() -> Dict:
 
 def run_query(question: str, doc_ids: Optional[List[int]] = None, cat_id: Optional[int] = None, llm_config_id: Optional[int] = None) -> Dict:
     # ... (same as before)
+
+
+    return {
+        "documents": docs_response.json(),
+        "categories": cats_response.json(),
+        "llm_configs": llm_configs_response.json()
+    }
+
+def run_query(question: str, doc_ids: Optional[List[int]] = None, cat_id: Optional[int] = None, llm_config_id: Optional[int] = None) -> Dict:
+
+
     headers = get_auth_headers()
     payload = {"question": question}
     if cat_id is not None:
@@ -50,7 +73,13 @@ def run_query(question: str, doc_ids: Optional[List[int]] = None, cat_id: Option
     return response.json()
 
 def save_query_as_document(query_id: int, filename: str):
+
     # ... (same as before)
+
+
+    # ... (same as before)
+
+
     headers = get_auth_headers()
     data = {"new_filename": filename}
     response = requests.post(f"{API_BASE_URL}/query/{query_id}/save_as_document", data=data, headers=headers)
@@ -58,7 +87,13 @@ def save_query_as_document(query_id: int, filename: str):
     return response.json()
 
 def append_to_document(doc_id: int, query_id: int, formatting_method: str):
+
     # ... (same as before)
+
+
+    # ... (same as before)
+
+
     headers = get_auth_headers()
     payload = {"query_id": query_id, "formatting_method": formatting_method}
     response = requests.post(f"{API_BASE_URL}/documents/{doc_id}/append", json=payload, headers=headers)
@@ -74,12 +109,22 @@ try:
         documents = user_data["documents"]
         categories = user_data["categories"]
         llm_configs = user_data["llm_configs"]
+
+
+
         mappings = user_data["mappings"]
 
         doc_map = {doc['original_filename']: doc['id'] for doc in documents}
         cat_map = {cat['name']: cat['id'] for cat in categories}
         llm_config_map = {config['name']: config['id'] for config in llm_configs}
         mapped_cat_ids = {m['category_id'] for m in mappings}
+
+
+        doc_map = {doc['original_filename']: doc['id'] for doc in documents}
+        cat_map = {cat['name']: cat['id'] for cat in categories}
+        llm_config_map = {config['name']: config['id'] for config in llm_configs}
+
+
 
     with st.sidebar:
         st.header("1. Select what to query")
@@ -88,12 +133,21 @@ try:
         selected_cat_id = None
         if query_target == "Category":
             if categories:
+
+
+
                 # Add icon to mapped categories
                 cat_display_names = [f"{cat['name']} ☁️" if cat['id'] in mapped_cat_ids else cat['name'] for cat in categories]
                 selected_display_name = st.selectbox("Choose a category", cat_display_names)
                 # Find original name to get ID
                 original_name = selected_display_name.replace(" ☁️", "")
                 selected_cat_id = cat_map.get(original_name)
+
+
+                cat_name = st.selectbox("Choose a category", list(cat_map.keys()))
+                selected_cat_id = cat_map.get(cat_name)
+
+
             else:
                 st.info("No categories available.")
         else:
@@ -103,8 +157,17 @@ try:
             else:
                 st.info("No documents available.")
 
+
         st.header("2. Configure Model (Optional)")
         # ... (rest of the sidebar is the same)
+
+
+        st.header("2. Configure Model (Optional)")
+        # ... (rest of the sidebar is the same)
+
+        st.header("2. Configure Model (Optional)")
+
+
         selected_llm_config_id = None
         if llm_configs:
             llm_config_name = st.selectbox("Model", list(llm_config_map.keys()))
@@ -114,7 +177,13 @@ try:
     question = st.text_area("3. Ask your question", height=150)
 
     if st.button("Get Answer"):
+
         # ... (same as before)
+
+
+        # ... (same as before)
+
+
         is_valid_selection = (query_target == "Category" and selected_cat_id is not None) or \
                              (query_target == "Specific Documents" and selected_doc_ids)
         if not question:
@@ -129,6 +198,10 @@ try:
 
     if st.session_state.get("last_answer"):
         # ... (same as before)
+
+
+
+
         st.markdown("---")
         st.subheader("Answer")
         st.markdown(st.session_state.last_answer)
