@@ -13,8 +13,10 @@ class Category(Base):
     __tablename__ = "categories"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True, nullable=False)
+    name = Column(String, index=True, nullable=False)  # Name is not globally unique
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
+    owner = relationship("User", back_populates="categories")
     documents = relationship(
         "Document",
         secondary=document_category_association,
