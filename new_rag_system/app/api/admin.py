@@ -1,3 +1,4 @@
+import os
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -6,27 +7,15 @@ from sqlalchemy import func # For analytics functions
 from .. import schemas
 from ..database import get_db
 from ..models import User, LLMConfig, QueryLog
-from .auth import get_current_active_user # Import get_current_active_user
+from .auth import get_current_active_user, get_current_admin_user
 
 router = APIRouter()
 
-# --- Dependency for Admin Users ---
-def get_current_admin_user(current_user: User = Depends(get_current_active_user)):
-    """
-    Dependency to ensure the current authenticated user has an 'admin' role.
-    """
-    if current_user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="The user does not have enough privileges",
-        )
-    return current_user
-
 # --- Publicly Accessible (Authenticated) LLM Config Endpoint ---
-@router.get("/llm_configs/", response_model=List[schemas.LLMConfig])
-def get_all_llm_configs(db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+@router.get("/llm_configs/", response_model=List[schemas.LLMConfig], dependencies=[Depends(get_current_admin_user)])
+def get_all_llm_configs(db: Session = Depends(get_db)):
     """
-    Get all LLM and API configurations. Accessible by any authenticated user.
+    Get all LLM and API configurations. (Admin only)
     """
     return db.query(LLMConfig).all()
 
@@ -36,7 +25,20 @@ def list_all_users(db: Session = Depends(get_db)):
     """
     Get a list of all users in the system. (Admin only)
     """
-    return db.query(User).all()
+    users = db.query(User).all()
+
+    # Get storage limit from environment variable
+    limit_mb = int(os.environ.get("USER_STORAGE_LIMIT_MB", 1024))
+    storage_limit_bytes = limit_mb * 1024 * 1024
+
+    # Manually populate the storage_limit for each user
+    users_out = []
+    for user in users:
+        user_data = schemas.UserOut.from_orm(user)
+        user_data.storage_limit = storage_limit_bytes
+        users_out.append(user_data)
+
+    return users_out
 
 @router.get("/history/", dependencies=[Depends(get_current_admin_user)])
 def get_all_query_history(db: Session = Depends(get_db)):

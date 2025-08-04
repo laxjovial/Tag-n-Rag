@@ -1,3 +1,4 @@
+import os
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -10,7 +11,13 @@ router = APIRouter()
 
 @router.get("/me", response_model=schemas.UserOut)
 def read_users_me(current_user: User = Depends(get_current_active_user)):
-    return current_user
+    user_data = schemas.UserOut.from_orm(current_user)
+
+    # Get storage limit from environment variable
+    limit_mb = int(os.environ.get("USER_STORAGE_LIMIT_MB", 1024))
+    user_data.storage_limit = limit_mb * 1024 * 1024
+
+    return user_data
 
 class UserThemeUpdate(schemas.BaseModel):
     theme: str
