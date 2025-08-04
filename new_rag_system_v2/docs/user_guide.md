@@ -1,7 +1,11 @@
 
 # User Guide: Advanced RAG System (Version 2.0)
 
+
+# User Guide: Advanced RAG System (Version 2.0)
+
 # User Guide: Advanced RAG System
+
 
 
 ## 1. Welcome!
@@ -59,6 +63,7 @@ Before you can query in this mode, you must tell the application which folders t
 ## 4. Analytics and Storage
 
 The **My Analytics** page now shows your personal storage usage for uploaded files, in addition to your query history and statistics.
+
 
 ## 2. Getting Started
 
@@ -121,6 +126,7 @@ The **My Analytics** page provides a dashboard of your personal activity, includ
 *   Your total number of queries.
 *   A chart of your query activity over time.
 *   A list of your most frequently queried documents.
+
 
 
 If you have any questions, don't hesitate to reach out to your system administrator. Happy querying!

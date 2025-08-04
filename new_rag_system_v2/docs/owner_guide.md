@@ -26,6 +26,7 @@ The core architecture remains a decoupled FastAPI backend and Streamlit frontend
 *   **Ingestion from Google Drive:** A user can now browse their Drive and select files to ingest. The backend uses the `GoogleDriveService` to download the file and the `CloudStorageService` to upload it to the application's managed GCS bucket. The process then follows the standard ingestion flow.
 *   **Read-on-the-fly Query:** When a user queries a category mapped to a Drive folder, the `query` endpoint uses the `GoogleDriveService` to temporarily download all files in that folder into memory. The `RAGSystem` has a new `query_on_the_fly` method that creates an ephemeral vector store for this content, performs the query, and then discards the data.
 
+
 # Owner's Guide: Advanced RAG System
 
 ## 1. Introduction
@@ -83,6 +84,7 @@ The frontend provides an interactive and user-friendly interface for the system.
 6.  The generated answer is returned to the user. The query and its context are logged in PostgreSQL.
 
 
+
 ---
 
 ## 3. Configuration
@@ -92,6 +94,7 @@ The frontend provides an interactive and user-friendly interface for the system.
 In addition to the previous variables, V2.0 requires:
 *   **`USER_STORAGE_LIMIT_MB`:** Sets the universal user storage quota in megabytes.
 *   **Google OAuth Credentials:** You must create a `client_secrets.json` file in the root directory with your project's OAuth 2.0 client ID and secret from the Google Cloud Console.
+
 
 The system is highly configurable via environment variables and a YAML configuration file.
 
@@ -128,6 +131,7 @@ api_providers:
 ```
 
 
+
 ---
 
 ## 4. Extending the System
@@ -139,6 +143,7 @@ The new services provide a clear pattern for adding more external data sources i
 3.  Adding the necessary UI components for connection and browsing.
 
 ... (rest of the guide remains similar) ...
+
 
 The modular architecture makes it straightforward to extend the system.
 
@@ -228,3 +233,4 @@ You can now access the web application at `http://localhost:8501`.
 *   **API:** The API has been expanded with endpoints for managing user profiles (`/user`), handling document edits, exporting queries, and saving queries as new documents. It also includes endpoints for creating documents from raw text (`/documents/from_text`) and exporting any document (`/documents/{doc_id}/export`).
 *   **LLM Flexibility:** The `RAGSystem` has been refactored to dynamically load LLM configurations, allowing for seamless integration with any Langchain-compatible model, including local models served via an API like Ollama. Refer to `llm_integration_guide.md` for detailed instructions.
 *   **Export Service:** A new `ExportService` in `app/services/export.py` handles the generation of PDF, DOCX, and TXT files from text content.
+

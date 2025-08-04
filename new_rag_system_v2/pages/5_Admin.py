@@ -1,7 +1,11 @@
 import streamlit as st
 import pandas as pd
 import requests
+
+from src.frontend.utils import check_admin_auth
+
 from app.utils import check_admin_auth
+
 
 # --- Authentication Check ---
 check_admin_auth()

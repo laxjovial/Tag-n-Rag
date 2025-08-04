@@ -30,7 +30,20 @@ def get_user_profile():
     response.raise_for_status()
     return response.json()
 
-=======
+
+@st.cache_data(ttl=60)
+def get_my_analytics():
+    response = requests.get(f"{API_BASE_URL}/history/analytics", headers=get_auth_headers())
+    response.raise_for_status()
+    return response.json()
+
+@st.cache_data(ttl=60)
+def get_user_profile():
+    response = requests.get(f"{API_BASE_URL}/user/me", headers=get_auth_headers())
+    response.raise_for_status()
+    return response.json()
+
+
 
 @st.cache_data(ttl=60)
 def get_my_analytics():
@@ -51,6 +64,7 @@ def get_user_profile():
     return response.json()
 
 
+
 def format_bytes(size_bytes):
     """Converts bytes to a human-readable format."""
     if size_bytes == 0:
@@ -66,12 +80,16 @@ def format_bytes(size_bytes):
 
 
 
+
+
 # --- UI Rendering ---
 st.title("My Personal Analytics")
 
 try:
     with st.spinner("Loading your analytics..."):
         analytics_data = get_my_analytics()
+
+
 
 
 
@@ -105,6 +123,7 @@ try:
 
 
 
+
     if not analytics_data or analytics_data["total_queries"] == 0:
         st.info("You don't have any usage data to analyze yet. Start by asking some questions!")
     else:
@@ -120,6 +139,7 @@ try:
         # --- Queries Per Day Chart ---
 
 
+
         queries_per_day = analytics_data.get("queries_per_day")
         if queries_per_day:
             st.subheader("Your Query Activity")
@@ -130,7 +150,9 @@ try:
 
 
 
+
         # --- Top Queried Documents ---
+
 
 
         top_docs = analytics_data.get("top_documents")

@@ -1,7 +1,12 @@
 
 # Application Documentation: Advanced RAG System (V2.0)
 
+
+
+# Application Documentation: Advanced RAG System (V2.0)
+
 # Application Documentation: Advanced RAG System
+
 
 
 ## 1. Introduction
@@ -14,7 +19,12 @@ This document provides a high-level overview of the architecture, data flow, and
 
 The system uses a modern, decoupled architecture. Version 2.0 introduces the ability to connect to external data sources like Google Drive.
 
+
+
+The system uses a modern, decoupled architecture. Version 2.0 introduces the ability to connect to external data sources like Google Drive.
+
 The system is designed with a modern, decoupled architecture that separates the frontend, backend, and data storage layers.
+
 
 
 ```
@@ -41,6 +51,7 @@ The system is designed with a modern, decoupled architecture that separates the 
 ```
 The architecture remains similar, but the backend now includes a dedicated service for interacting with the Google Drive API, allowing for two distinct data handling modes.
 
+
                              |      +-------------------------+
                              +----->| Google Cloud Storage    |
                                     | (Document Files)        |
@@ -53,6 +64,7 @@ The architecture remains similar, but the backend now includes a dedicated servi
     *   **PostgreSQL:** The primary relational database for storing structured data like user accounts, document metadata, categories, and query history.
     *   **ChromaDB:** A specialized vector database for storing document embeddings and performing efficient similarity searches.
     *   **Google Cloud Storage (GCS):** A scalable object store for persisting the original uploaded document files.
+
 
 
 ---
@@ -80,6 +92,7 @@ This flow applies to direct uploads and ingestion from Google Drive.
 7.  **Return Response & Discard:** The answer is returned to the user. The temporary content and vector store are discarded. No files are stored on the server.
 8.  **Log Query:** The query is logged in PostgreSQL.
 
+
 ### 3.1. Document Ingestion Flow
 
 1.  **Document Creation:** A user creates a document in one of three ways:
@@ -103,6 +116,7 @@ This flow applies to direct uploads and ingestion from Google Drive.
 7.  **Log Query:** The query and its context are logged in the `query_logs` table in PostgreSQL.
 
 
+
 ---
 
 ## 4. Key Components & Services
@@ -122,6 +136,7 @@ This flow applies to direct uploads and ingestion from Google Drive.
 
 (Other components remain largely the same)
 
+
 *   **`app/main.py`:** The entry point for the FastAPI application. It initializes the app, includes the API routers, and starts background services.
 *   **`app/api/`:** This directory contains the API routers, with each file corresponding to a different resource (e.g., `documents.py`, `users.py`).
 *   **`app/services/`:**
@@ -132,4 +147,5 @@ This flow applies to direct uploads and ingestion from Google Drive.
 *   **`app/models/`:** Contains all the SQLAlchemy database models.
 *   **`app.py` (root):** The main entry point for the Streamlit frontend application.
 *   **`pages/`:** Contains the individual pages of the Streamlit application.
+
 

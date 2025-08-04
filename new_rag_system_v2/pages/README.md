@@ -20,7 +20,4 @@ The number prefix in the filename (e.g., `0_Dashboard.py`) is used to control th
 -   `11_Connect_Data_Source.py`: (V2.0) The page for connecting to Google Drive and ingesting files from it.
 -   `12_Manage_Mappings.py`: (V2.0) The page for managing category-to-folder mappings for the read-on-the-fly feature.
 
--   `8_Analytics.py`: The admin-only page for viewing usage analytics.
--   `9_Export.py`: The page for exporting query results.
--   `10_Create_from_Text.py`: The page for creating a new document from raw text.
 

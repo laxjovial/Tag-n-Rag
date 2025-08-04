@@ -29,6 +29,10 @@ This project is a sophisticated, standalone Retrieval-Augmented Generation (RAG)
     *   **Configurable Storage Quotas:** A universal storage limit for all users can be easily configured via environment variables to ensure fair usage.
 
 
+    *   **Configurable Storage Quotas:** A universal storage limit for all users can be easily configured via environment variables to ensure fair usage.
+
+
+
 ## Technology Stack
 
 *   **Backend:** FastAPI

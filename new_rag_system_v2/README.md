@@ -25,6 +25,7 @@ Version 2.0 introduces powerful new capabilities, allowing the system to act as 
         2.  **Read-on-the-fly:** Query files directly from your Google Drive without uploading them. The file content is fetched temporarily for the query and is never stored on our servers, ensuring privacy.
     *   **Category Mapping:** Map categories within the application to specific folders in your Google Drive to easily query entire collections of files in "read-on-the-fly" mode.
 
+
 # Advanced RAG System
 
 ## Overview
@@ -54,6 +55,7 @@ This project is a sophisticated, standalone Retrieval-Augmented Generation (RAG)
     *   **Admin Dashboard:** A secure, admin-only interface for managing users, viewing system configurations, and monitoring global query history and analytics.
 
 
+
 ## Technology Stack
 
 *   **Backend:** FastAPI
@@ -62,6 +64,8 @@ This project is a sophisticated, standalone Retrieval-Augmented Generation (RAG)
     *   **PostgreSQL:** For metadata, user data, query history, and system configurations.
     *   **ChromaDB:** For vector storage and similarity search.
 
+
+
 *   **Core Libraries:** Langchain, SQLAlchemy, Google API Client Library.
 
 ## Getting Started
@@ -69,6 +73,7 @@ This project is a sophisticated, standalone Retrieval-Augmented Generation (RAG)
 (Setup instructions remain the same as V1.0, but will require additional setup for Google OAuth credentials in `client_secrets.json`)
 
 ... (rest of setup guide) ...
+
 
 *   **Core Libraries:** Langchain, SQLAlchemy, Psycopg2, Passlib (for hashing).
 
@@ -126,4 +131,5 @@ Open a **new** terminal and run the following command from the `new_rag_system` 
 streamlit run app.py
 ```
 You can now access the web application by navigating to `http://localhost:8501` in your browser.
+
 
