@@ -3,91 +3,85 @@ import requests
 from src.frontend.utils import check_auth
 
 # --- Authentication Check ---
-check_auth("Connect Data Source")
+check_auth("Manage Connections")
 
 # --- Page Configuration ---
-st.set_page_config(page_title="Connect Data Source", layout="wide")
+st.set_page_config(page_title="Manage Connections", layout="wide")
 
 # --- API Configuration ---
 API_BASE_URL = "http://127.0.0.1:8000"
 
 # --- Helper Functions ---
 def get_auth_headers():
-    token = st.session_state.get("token")
-    return {"Authorization": f"Bearer {token}"}
+    return {"Authorization": f"Bearer {st.session_state.token}"}
 
-@st.cache_data(ttl=10)
-def get_user_connection_status():
-    response = requests.get(f"{API_BASE_URL}/user/me", headers=get_auth_headers())
-    response.raise_for_status()
-    return response.json().get("has_google_credentials", False)
-
-@st.cache_data(ttl=60)
-def list_gdrive_files(folder_id='root'):
-    params = {"folder_id": folder_id}
-    response = requests.get(f"{API_BASE_URL}/gdrive/files", headers=get_auth_headers(), params=params)
+@st.cache_data(ttl=30)
+def get_connections():
+    response = requests.get(f"{API_BASE_URL}/connections/", headers=get_auth_headers())
     response.raise_for_status()
     return response.json()
 
-def ingest_from_gdrive(file_ids: list[str]):
-    """Triggers the ingestion of selected Google Drive files."""
-    payload = {"file_ids": file_ids}
-    response = requests.post(f"{API_BASE_URL}/gdrive/ingest", json=payload, headers=get_auth_headers())
+def delete_connection(connection_id: int):
+    requests.delete(f"{API_BASE_URL}/connections/{connection_id}", headers=get_auth_headers()).raise_for_status()
+    st.cache_data.clear()
+    st.rerun()
+
+def get_confluence_auth_url(site_url: str):
+    response = requests.post(f"{API_BASE_URL}/auth/confluence/login", data={"site_url": site_url}, headers=get_auth_headers())
     response.raise_for_status()
-    return response.json()
+    return response.json()['authorization_url']
 
 # --- UI Rendering ---
-st.title("Connect Your Data Sources")
+st.title("Manage Your Data Source Connections")
+st.write("Connect to external services to enable new ways of querying your data.")
+
+AVAILABLE_SERVICES = {
+    "google_drive": {"name": "Google Drive", "icon": "☁️", "login_path": "/auth/google/login"},
+    "dropbox": {"name": "Dropbox", "icon": "📦", "login_path": "/auth/dropbox/login"},
+    "onedrive": {"name": "Microsoft OneDrive", "icon": "📄", "login_path": "/auth/onedrive/login"},
+    "confluence": {"name": "Atlassian Confluence", "icon": " Jira", "login_path": "/auth/confluence/login"},
+    "google_keep": {"name": "Google Keep", "icon": "💡", "login_path": None},
+}
 
 try:
-    is_connected = get_user_connection_status()
+    connections = get_connections()
+    connected_services = {conn['service_name'] for conn in connections}
 
-    tab1, tab2 = st.tabs(["Connection Status", "Upload from Google Drive"])
+    st.header("Your Connections")
+    if not connections:
+        st.info("You have not connected any external services yet.")
+    else:
+        for conn in connections:
+            service_info = AVAILABLE_SERVICES.get(conn['service_name'], {"name": conn['service_name'], "icon": "🔗"})
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.subheader(f"{service_info['icon']} {service_info['name']}")
+            with col2:
+                if st.button("Delete", key=f"del_conn_{conn['id']}", type="primary"):
+                    delete_connection(conn['id'])
 
-    with tab1:
-        st.subheader("Google Drive Connection")
-        if is_connected:
-            st.success("You have successfully connected your Google Drive account.")
-            if st.button("Disconnect Google Drive"):
-                st.warning("Disconnect functionality is not yet implemented.")
-        else:
-            st.info("You have not connected your Google Drive account yet.")
-            st.link_button("Connect to Google Drive", f"{API_BASE_URL}/auth/google/login")
+    st.divider()
 
-    with tab2:
-        if not is_connected:
-            st.info("Please connect your Google Drive account in the 'Connection Status' tab first.")
-        else:
-            st.subheader("Select Files to Upload to Server")
+    st.header("Available Connections")
+    for service_id, service_info in AVAILABLE_SERVICES.items():
+        if service_id not in connected_services:
+            with st.container(border=True):
+                st.subheader(f"{service_info['icon']} {service_info['name']}")
 
-            files = list_gdrive_files()
-
-            if not files:
-                st.write("No files found in your Google Drive's root folder.")
-            else:
-                with st.form("ingest_form"):
-                    selected_files = []
-                    for file in files:
-                        is_folder = file['mimeType'] == 'application/vnd.google-apps.folder'
-                        icon = "📁" if is_folder else "📄"
-                        label = f"{icon} {file['name']}"
-
-                        if not is_folder:
-                            if st.checkbox(label, key=file['id']):
-                                selected_files.append(file['id'])
-                        else:
-                            st.write(label)
-
-                    submitted = st.form_submit_button("Upload Selected Files")
-                    if submitted:
-                        if selected_files:
-                            with st.spinner("Uploading files from your Drive... This may take a moment."):
-                                ingested_docs = ingest_from_gdrive(selected_files)
-                                st.success(f"Successfully uploaded {len(ingested_docs)} file(s)!")
-                                st.write("You can now view them on the 'View Documents' page.")
-                                st.cache_data.clear()
-                        else:
-                            st.warning("Please select at least one file to upload.")
+                if service_id == "confluence":
+                    with st.form(key="confluence_connect_form"):
+                        site_url = st.text_input("Your Confluence Site URL (e.g., https://your-company.atlassian.net)")
+                        if st.form_submit_button("Connect Confluence"):
+                            if site_url:
+                                auth_url = get_confluence_auth_url(site_url)
+                                st.link_button("Proceed to Atlassian", auth_url)
+                            else:
+                                st.error("Please enter your Confluence site URL.")
+                elif service_info['login_path']:
+                    login_url = f"{API_BASE_URL}{service_info['login_path']}"
+                    st.link_button(f"Connect {service_info['name']}", login_url)
+                else:
+                    st.button("Connect", disabled=True, help="This service does not have a public API and cannot be connected.")
 
 except requests.exceptions.RequestException as e:
     st.error(f"An API error occurred: {e}")

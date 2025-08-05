@@ -1,40 +1,41 @@
-# Advanced RAG System - Version 2.0
+# Advanced RAG System - Version 3.0
 
 ## Overview
 
-This project is a sophisticated, standalone Retrieval-Augmented Generation (RAG) system designed to provide intelligent answers from a collection of documents. It features a FastAPI backend for robust API services and a Streamlit frontend for an interactive user experience.
+This project is a sophisticated, enterprise-grade Retrieval-Augmented Generation (RAG) system designed to provide intelligent answers from a variety of data sources. It features a scalable FastAPI backend, an interactive Streamlit frontend, and a robust architecture for integrating with external services like Google Drive, Dropbox, and more.
 
-Version 2.0 introduces powerful new capabilities, allowing the system to act as a central hub that can connect directly to a user's external data sources, such as Google Drive, reducing the need to upload and store files on the application's own storage.
+Version 3.0 represents a major architectural upgrade, focusing on production-readiness, enterprise governance, advanced AI capabilities, and a flexible framework for data source integration.
 
 ## Key Features
 
-### Core V1.0 Features
-*   **Secure, Multi-Tenant Design:** Clear separation between `user` and `admin` roles with personal data isolation.
-*   **Flexible Document Creation:** Upload files (PDF, DOCX, TXT) or create documents from raw text.
-*   **Advanced Document Management:** Edit and export documents, set expiration policies, and organize content with personal categories.
-*   **Intelligent Querying:** Query single or multiple documents/categories, view personal query history, and configure LLM settings.
-*   **User and Admin Dashboards:** Dedicated interfaces for personal analytics and system-wide administration.
-*   **Configurable Storage Quotas:** A universal storage limit for all users' uploaded documents, configured via environment variables.
-
-### New in Version 2.0
-*   **Direct Google Drive Integration:**
-    *   **Secure Connection:** Users can securely connect their Google Drive account using OAuth 2.0.
-    *   **Two Query Modes:**
-        1.  **Upload from Drive:** Browse your Google Drive from within the app and select files to upload/ingest into the application's managed storage. These files are then available permanently for querying.
-        2.  **Read-on-the-fly:** Query files directly from your Google Drive without uploading them. The file content is fetched temporarily for the query and is never stored on our servers, ensuring privacy.
-    *   **Category Mapping:** Map categories within the application to specific folders in your Google Drive to easily query entire collections of files in "read-on-the-fly" mode.
+*   **Enterprise Governance & Security:**
+    *   **Role-Based Access Control (RBAC):** A clear separation between `user` and `admin` roles, ensuring users can only access their own data.
+    *   **Full User Management UI:** A dedicated admin interface for inviting, deleting, and managing user roles.
+    *   **Detailed Audit Logs:** A comprehensive, viewable log of all significant actions taken within the application for security and compliance.
+*   **Advanced AI & RAG Pipeline:**
+    *   **Hybrid Search:** Combines traditional keyword search with vector search to improve retrieval accuracy.
+    *   **Re-ranking Model:** A secondary AI model re-ranks search results for relevance before they are sent to the LLM, increasing answer quality.
+    *   **Conversational Memory:** The system remembers the context of previous questions, allowing for natural, multi-turn conversations.
+*   **Flexible Data Source Integration:**
+    *   **Two Modes of Operation:**
+        1.  **Managed Storage:** Upload files directly or ingest them from connected services into the application's secure storage, with a universal, configurable storage quota for all users.
+        2.  **Read-on-the-fly:** Query files directly from connected services like Google Drive without ever storing them on the application's servers.
+    *   **Multiple Connectors:** Built-in, production-ready integrations for Google Drive, Dropbox, Microsoft OneDrive, and Atlassian Confluence.
+*   **Enhanced User Experience:**
+    *   **Asynchronous Processing:** Long-running tasks like file uploads and ingestions are handled in the background, with in-app notifications upon completion.
+    *   **Saved Data Sources:** A secure system for users to save and manage their connections to external services.
 
 ## Technology Stack
 
 *   **Backend:** FastAPI
 *   **Frontend:** Streamlit
-*   **Databases:**
-    *   **PostgreSQL:** For metadata, user data, query history, and system configurations.
-    *   **ChromaDB:** For vector storage and similarity search.
-*   **Core Libraries:** Langchain, SQLAlchemy, Google API Client Library.
+*   **Databases:** PostgreSQL, ChromaDB
+*   **Core Libraries:** Langchain, SQLAlchemy, Pydantic, Sentence-Transformers, Cryptography
+*   **Key Integrations:** Google API, Dropbox API, Microsoft Graph API, Atlassian API
 
-## Getting Started
+## Project Structure
 
-(Setup instructions remain the same as V1.0, but will require additional setup for Google OAuth credentials in `client_secrets.json`)
+The V3.0 codebase has been professionally restructured for scalability and maintainability, with a clear separation of concerns in a top-level `src` directory.
 
-... (rest of setup guide) ...
+---
+(Setup and running instructions follow, with added details on configuring all API keys and the new `FERNET_KEY` in the `.env` file.)
